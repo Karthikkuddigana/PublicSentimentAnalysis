@@ -1,25 +1,63 @@
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
   };
 
+  const isActive = (path) => location.pathname === path;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm dark:bg-slate-950/80 dark:border-slate-800 shadow-sm">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
-            AI
-          </div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            Enterprise AI Sentiment Dashboard
-          </h1>
+        <div className="flex items-center gap-8">
+          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              PS
+            </div>
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
+              Public Sentiment Analysis
+            </h1>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-1">
+            <Link
+              to="/dashboard"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/dashboard')
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/analyze"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/analyze')
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              Analyze Data
+            </Link>
+            <Link
+              to="/review"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/review')
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              Submit Review
+            </Link>
+          </nav>
         </div>
 
         <div className="flex items-center gap-6">

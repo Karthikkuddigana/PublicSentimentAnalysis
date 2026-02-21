@@ -34,9 +34,12 @@ export default function Login() {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl shadow-xl mb-6">
-            <span className="text-2xl font-black text-white">AI</span>
+            <span className="text-2xl font-black text-white">PS</span>
           </div>
-          <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+            Public Sentiment Analysis
+          </h1>
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Welcome back
           </h2>
         </div>
