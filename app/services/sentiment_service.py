@@ -15,7 +15,6 @@ MODEL_NAME = "llama-3.1-8b-instant"
 # =========================================================
 
 def analyze_sentiment(text: str, benchmark: int = 5):
-    print('analyze_sentiment', text)
     prompt = f"""
     Analyze the sentiment of the following text.
     Respond strictly in JSON format like:
@@ -32,7 +31,6 @@ def analyze_sentiment(text: str, benchmark: int = 5):
         messages=[{"role": "user", "content": prompt}],
         temperature=0.1
     )
-    print('sentiment response received')
     content = response.choices[0].message.content
     result = json.loads(content)
 

@@ -8,7 +8,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from app.services.sentiment_service import analyze_sentiment, analyze_emotion
-
+from app.repositories.review_repository import save_reviews_to_supabase
+from app.repositories.youtube_repository import save_youtube_comments
 
 
 # =========================================================
@@ -72,7 +73,6 @@ def fetch_comments(
     Fetch comments for a video with sentiment scoring.
     Supports pagination up to max_comments.
     """
-    print("fetch comments called.")
     comments: List[Dict] = []
     next_page_token = None
 
@@ -124,7 +124,6 @@ def fetch_comments(
         next_page_token = data.get("nextPageToken")
         if not next_page_token:
             break
-    print("comments:", comments)
     return comments
 
 
@@ -210,6 +209,7 @@ def _write_metadata(
 def run_ingestion(
     brand: str,
     title_keyword: str,
+    organization_id: str,
     storage: str = "csv",
     benchmark: int = 5,
     max_videos: int = 5,
@@ -224,17 +224,105 @@ def run_ingestion(
     """
 
     all_comments: List[Dict] = []
+    youtube_records: List[Dict] = []
 
     video_ids = search_videos(brand, title_keyword, max_results=max_videos)
-    print(video_ids)
+
+    for video_id in video_ids:
+
+        comments = fetch_comments(
+            video_id=video_id,
+            benchmark=benchmark,
+            max_comments=max_comments_per_video
+        )
+
+        for comment in comments:
+
+            # Build record for youtube_comments table
+            youtube_records.append({
+                "organization_id": organization_id,
+                "source": "youtube",
+                "video_id": video_id,
+                "author": comment.get("author"),
+                "text": comment.get("text"),
+                "published_at": comment.get("published_at"),
+                "like_count": comment.get("like_count"),
+                "sentiment": comment.get("sentiment"),
+                "raw_score": comment.get("raw_score"),
+                "scaled_score": comment.get("scaled_score"),
+                "benchmark": benchmark,
+                "sentiment_confidence": comment.get("sentiment_confidence"),
+                "emotion": comment.get("emotion"),
+                "emotion_confidence": comment.get("emotion_confidence"),
+                "fetched_at": datetime.utcnow(),
+                "created_at": datetime.utcnow()
+            })
+
+        all_comments.extend(comments)
+
+    # ✅ Insert into youtube_comments table
+    save_youtube_comments(youtube_records)
+
+    file_path = None
+
+    if storage == "csv":
+        file_path = save_to_csv(all_comments, brand, title_keyword)
+
+    elif storage == "excel":
+        file_path = save_to_excel(all_comments, brand, title_keyword)
+
+    elif storage == "supabase":
+        pass  # already inserted into youtube_comments
+
+    else:
+        raise ValueError("Invalid storage type. Use: csv | excel | supabase")
+
+    return {
+        "records": len(all_comments),
+        "videos_processed": len(video_ids),
+        "file": file_path,
+        "benchmark": benchmark
+    }
+
+# def run_ingestion(
+#     brand: str,
+#     title_keyword: str,
+#     storage: str = "csv",
+#     benchmark: int = 5,
+#     max_videos: int = 5,
+#     max_comments_per_video: int = 100,
+# ) -> Dict:
+    """
+    Orchestrates full ingestion flow:
+    - Search videos
+    - Fetch comments
+    - Apply sentiment scoring
+    - Persist data
+    """
+
+    all_comments: List[Dict] = []
+    data = {
+        "organization_id": [],
+        "data_source_id": [],
+        "review_text": [],
+        "review_date": [],
+        "created_at": []
+    }
+    video_ids = search_videos(brand, title_keyword, max_results=max_videos)
     for video_id in video_ids:
         comments = fetch_comments(
             video_id=video_id,
             benchmark=benchmark,
             max_comments=max_comments_per_video
         )
+        for comment in comments:
+            data["organization_id"].append("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+            data["data_source_id"].append("a796930e-a39a-412a-8480-5eb1d50b753e")
+            data["review_text"].append(comment["text"])
+            data["review_date"].append(comment["published_at"])
+            data["created_at"].append(datetime.utcnow())
         all_comments.extend(comments)
-    print("all_comments:", all_comments)
+    save_reviews_to_supabase(data)
     file_path = None
 
     if storage == "csv":

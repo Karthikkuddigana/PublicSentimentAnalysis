@@ -64,6 +64,7 @@ def ingest(req: IngestRequest):
         result = run_ingestion(
             brand=req.brand,
             title_keyword=req.title_keyword,
+            organization_id="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             storage=req.storage,
             benchmark=req.benchmark,
             max_videos=req.max_videos,
