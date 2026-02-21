@@ -72,6 +72,7 @@ def fetch_comments(
     Fetch comments for a video with sentiment scoring.
     Supports pagination up to max_comments.
     """
+    print("fetch comments called.")
     comments: List[Dict] = []
     next_page_token = None
 
@@ -123,7 +124,7 @@ def fetch_comments(
         next_page_token = data.get("nextPageToken")
         if not next_page_token:
             break
-
+    print("comments:", comments)
     return comments
 
 
@@ -225,7 +226,7 @@ def run_ingestion(
     all_comments: List[Dict] = []
 
     video_ids = search_videos(brand, title_keyword, max_results=max_videos)
-
+    print(video_ids)
     for video_id in video_ids:
         comments = fetch_comments(
             video_id=video_id,
@@ -233,7 +234,7 @@ def run_ingestion(
             max_comments=max_comments_per_video
         )
         all_comments.extend(comments)
-
+    print("all_comments:", all_comments)
     file_path = None
 
     if storage == "csv":

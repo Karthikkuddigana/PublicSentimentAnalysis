@@ -1,42 +1,43 @@
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification
-)
-import torch
-import torch.nn.functional as F
+from groq import Groq
+from dotenv import load_dotenv
+import os
+import json
 
-# =========================================================
-# MODEL CONFIG
-# =========================================================
+load_dotenv()
 
-SENTIMENT_MODEL_NAME = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
-EMOTION_MODEL_NAME = "j-hartmann/emotion-english-distilroberta-base"
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Load once (global cache)
-sentiment_tokenizer = AutoTokenizer.from_pretrained(SENTIMENT_MODEL_NAME)
-sentiment_model = AutoModelForSequenceClassification.from_pretrained(SENTIMENT_MODEL_NAME)
-
-emotion_tokenizer = AutoTokenizer.from_pretrained(EMOTION_MODEL_NAME)
-emotion_model = AutoModelForSequenceClassification.from_pretrained(EMOTION_MODEL_NAME)
-
-sentiment_labels = ["negative", "neutral", "positive"]
-emotion_labels = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
+MODEL_NAME = "llama-3.1-8b-instant"
 
 
 # =========================================================
-# SENTIMENT ANALYSIS
+# SENTIMENT ANALYSIS USING GROQ
 # =========================================================
 
 def analyze_sentiment(text: str, benchmark: int = 5):
+    print('analyze_sentiment', text)
+    prompt = f"""
+    Analyze the sentiment of the following text.
+    Respond strictly in JSON format like:
+    {{
+        "sentiment": "Negative/Neutral/Positive",
+        "confidence": 0.95
+    }}
 
-    inputs = sentiment_tokenizer(text, return_tensors="pt", truncation=True)
-    outputs = sentiment_model(**inputs)
+    Text: "{text}"
+    """
 
-    probs = F.softmax(outputs.logits, dim=1)
-    probabilities = probs.detach().numpy()[0]
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1
+    )
+    print('sentiment response received')
+    content = response.choices[0].message.content
+    result = json.loads(content)
 
-    sentiment_index = probabilities.argmax()
-    sentiment_label = sentiment_labels[sentiment_index]
+    sentiment_label = result["sentiment"].lower()
+    confidence = result["confidence"]
 
     numeric_map = {
         "negative": -1,
@@ -44,7 +45,7 @@ def analyze_sentiment(text: str, benchmark: int = 5):
         "positive": 1
     }
 
-    raw_score = numeric_map[sentiment_label]
+    raw_score = numeric_map.get(sentiment_label, 0)
     normalized = (raw_score + 1) / 2
     scaled_score = round(normalized * benchmark, 2)
 
@@ -53,26 +54,40 @@ def analyze_sentiment(text: str, benchmark: int = 5):
         "raw_score": raw_score,
         "scaled_score": scaled_score,
         "benchmark": benchmark,
-        "confidence": round(float(probabilities[sentiment_index]), 4)
+        "confidence": round(float(confidence), 4)
     }
 
 
 # =========================================================
-# EMOTION ANALYSIS
+# EMOTION ANALYSIS USING GROQ
 # =========================================================
 
 def analyze_emotion(text: str):
 
-    inputs = emotion_tokenizer(text, return_tensors="pt", truncation=True)
-    outputs = emotion_model(**inputs)
+    prompt = f"""
+    Detect the primary emotion in the following text.
+    Choose ONLY from:
+    anger, disgust, fear, joy, neutral, sadness, surprise
 
-    probs = F.softmax(outputs.logits, dim=1)
-    probabilities = probs.detach().numpy()[0]
+    Respond strictly in JSON format like:
+    {{
+        "emotion": "Joy",
+        "confidence": 0.93
+    }}
 
-    emotion_index = probabilities.argmax()
-    emotion_label = emotion_labels[emotion_index]
+    Text: "{text}"
+    """
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
+    )
+
+    content = response.choices[0].message.content
+    result = json.loads(content)
 
     return {
-        "emotion": emotion_label.capitalize(),
-        "emotion_confidence": round(float(probabilities[emotion_index]), 4)
+        "emotion": result["emotion"],
+        "emotion_confidence": round(float(result["confidence"]), 4)
     }

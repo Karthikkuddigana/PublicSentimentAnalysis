@@ -5,3 +5,6 @@ pandas
 python-dotenv
 supabase
 openpyxl
+transformers
+torch
+tiktoken
