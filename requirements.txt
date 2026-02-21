@@ -8,3 +8,4 @@ openpyxl
 transformers
 torch
 tiktoken
+groq

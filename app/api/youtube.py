@@ -45,7 +45,7 @@ class IngestResponse(BaseModel):
     status: str
     records: int
     videos_processed: int
-    file: str | None = None
+    file: str 
     benchmark: int
 
 
