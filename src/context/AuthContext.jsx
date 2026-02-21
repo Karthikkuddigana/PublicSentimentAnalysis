@@ -89,30 +89,54 @@ export function AuthProvider({ children }) {
 
   const signup = async (email, password, metadata = {}) => {
     try {
-      console.log('📝 Attempting Supabase signup for:', email);
+      console.log('📝 Attempting Supabase signup...');
+      console.log('📍 Email:', email);
+      console.log('📋 Metadata:', metadata);
+      console.log('🔍 Supabase object exists:', !!supabase);
+      console.log('🔍 Supabase.auth exists:', !!supabase?.auth);
+      console.log('🌐 ENV URL:', import.meta.env.VITE_SUPABASE_URL);
+      console.log('🔑 ENV KEY exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+      
+      if (!supabase || !supabase.auth) {
+        throw new Error('Supabase client is not properly initialized. Did you restart the dev server?');
+      }
+
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        throw new Error('Environment variables not loaded. Please restart dev server with: npm run dev');
+      }
+
+      console.log('🚀 Making API call to Supabase signup...');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: metadata, // Can include username, etc.
+          data: metadata, // Includes organizationName and username
         },
       });
+
+      console.log('📡 Signup API Response - data:', data);
+      console.log('📡 Signup API Response - error:', error);
 
       if (error) {
         console.error('❌ Signup error:', error.message);
         throw error;
       }
 
-      console.log('✅ Signup successful!', data);
-      console.log('Session exists:', !!data.session);
-      console.log('Email confirmation needed:', !data.session);
+      if (!data.user) {
+        throw new Error('Signup succeeded but no user data returned');
+      }
 
-      // Note: User might need to confirm email before logging in
+      console.log('✅ Signup successful!', data.user.email);
+      console.log('📦 User metadata stored:', data.user.user_metadata);
+      console.log('🔐 Session exists:', !!data.session);
+      console.log('📧 Email confirmation needed:', !data.session);
+
       setUser(data.user);
       return { success: true, error: null, needsEmailConfirmation: !data.session };
     } catch (error) {
       console.error('❌ Signup failed:', error);
-      return { success: false, error: error.message };
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      return { success: false, error: error.message || 'Signup failed' };
     }
   };
 
