@@ -11,13 +11,14 @@ def process_job(job_id: str, req_data: dict):
     try:
         timer = BenchmarkTimer()
 
-        result = run_ingestion(
-            source=req_data["source"],
-            brand=req_data["brand"],
-            keyword=req_data["keyword"],
-            benchmark=req_data["benchmark"],
-            storage=req_data["storage"],
-        )
+        # result = run_ingestion(
+        #     source=req_data["source"],
+        #     brand=req_data["brand"],
+        #     keyword=req_data["keyword"],
+        #     benchmark=req_data["benchmark"],
+        #     storage=req_data["storage"],
+        # )
+        result = run_ingestion(**req_data)
 
         timer.mark("ingestion_complete")
 

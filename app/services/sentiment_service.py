@@ -29,7 +29,8 @@ def batch_analyze_sentiment(texts: List[str], benchmark: int = 5):
         texts,
         return_tensors="pt",
         truncation=True,
-        padding=True
+        padding=True,
+        max_length=512
     ).to(device)
 
     with torch.no_grad():
@@ -71,7 +72,8 @@ def batch_analyze_emotion(texts: List[str]):
         texts,
         return_tensors="pt",
         truncation=True,
-        padding=True
+        padding=True,
+        max_length=512
     ).to(device)
 
     with torch.no_grad():
