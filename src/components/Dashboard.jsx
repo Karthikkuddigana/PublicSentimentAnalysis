@@ -1,5 +1,5 @@
-import { Pie, Line, Bar, Doughnut } from 'react-chartjs-2';
-import { useState } from 'react';
+import { Pie, Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -11,6 +11,8 @@ import {
   LineElement,
   BarElement,
   Title,
+  RadialLinearScale,
+  Filler,
 } from 'chart.js';
 
 ChartJS.register(
@@ -22,7 +24,9 @@ ChartJS.register(
   PointElement,
   LineElement,
   BarElement,
-  Title
+  Title,
+  RadialLinearScale,
+  Filler
 );
 
 // ==================== MOCK DATA - REPLACE WITH API CALLS ====================
@@ -234,7 +238,71 @@ const MOCK_DATA = {
         'Maintain up-to-date FAQ section'
       ]
     }
-  ]
+  ],
+  
+  // Emotion analysis data
+  emotions: {
+    consolidated: {
+      joy: 45,
+      love: 28,
+      surprise: 12,
+      trust: 35,
+      anger: 15,
+      sadness: 18,
+      fear: 8,
+      disgust: 10
+    },
+    instagram: {
+      joy: 52,
+      love: 35,
+      surprise: 15,
+      trust: 38,
+      anger: 10,
+      sadness: 12,
+      fear: 5,
+      disgust: 8
+    },
+    twitter: {
+      joy: 38,
+      love: 22,
+      surprise: 18,
+      trust: 28,
+      anger: 22,
+      sadness: 20,
+      fear: 12,
+      disgust: 15
+    },
+    youtube: {
+      joy: 42,
+      love: 25,
+      surprise: 20,
+      trust: 32,
+      anger: 12,
+      sadness: 15,
+      fear: 8,
+      disgust: 10
+    },
+    facebook: {
+      joy: 55,
+      love: 38,
+      surprise: 10,
+      trust: 42,
+      anger: 8,
+      sadness: 10,
+      fear: 5,
+      disgust: 6
+    },
+    reddit: {
+      joy: 32,
+      love: 18,
+      surprise: 15,
+      trust: 22,
+      anger: 25,
+      sadness: 28,
+      fear: 15,
+      disgust: 18
+    }
+  }
 };
 // ==================== END MOCK DATA ====================
 
@@ -243,6 +311,143 @@ export default function Dashboard({ data }) {
   const [clickedData, setClickedData] = useState(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [activePeriod, setActivePeriod] = useState('7d');
+  const [apiData, setApiData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch dashboard data from API
+  // API Endpoint: https://obscure-engine-4j76qgxvwv5p2j6qp-8000.app.github.dev/dashboard/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+  // 
+  // ===== CURRENT API RESPONSE =====
+  // {
+  //   positiveCount: number,
+  //   negativeCount: number,
+  //   neurtralCount: number,  // Note: typo in API response (neutral spelled as neurtral)
+  //   emotions: {
+  //     Anger: number,
+  //     Neutral: number,
+  //     Joy: number,
+  //     Love: number,
+  //     Surprise: number,
+  //     Trust: number,
+  //     Sadness: number,
+  //     Fear: number,
+  //     Disgust: number
+  //   }
+  // }
+  //
+  // ===== ADDITIONAL FIELDS NEEDED (TODO: Add to API) =====
+  // - platformSentiments: object with sentiment breakdown by platform (instagram, twitter, youtube, facebook, reddit)
+  // - comments: array of comment objects with { id, text, sentiment, platform, timestamp, user }
+  // - trends: time-based trend data for line charts
+  // - positiveAreas: array of positive feedback areas
+  // - improvementAreas: array of areas needing improvement
+  // - approval: calculated approval rating percentage
+  //
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      try {
+        console.log('Fetching dashboard data from API...');
+        const response = await fetch('https://obscure-engine-4j76qgxvwv5p2j6qp-8000.app.github.dev/dashboard/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const apiResponse = await response.json();
+        console.log('API Response:', apiResponse);
+        
+        // Extend API data with fields not yet provided by backend
+        const enrichedData = {
+          ...apiResponse,
+          // Add missing fields that dashboard needs (will be removed when API provides them)
+          platformSentiments: apiResponse.platformSentiments || MOCK_DATA.platformSentiments,
+          comments: apiResponse.comments || MOCK_DATA.comments,
+          trends: apiResponse.trends || null, // Will be computed from mock if not available
+          positiveAreas: apiResponse.positiveAreas || MOCK_DATA.positiveAreas,
+          improvementAreas: apiResponse.improvementAreas || MOCK_DATA.improvementAreas,
+          approval: apiResponse.approval || Math.round((apiResponse.positiveCount / (apiResponse.positiveCount + apiResponse.negativeCount + apiResponse.neurtralCount)) * 100)
+        };
+        
+        setApiData(enrichedData);
+        console.log('Dashboard data loaded successfully');
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        console.log('Falling back to mock data');
+        
+        // Fallback to mock data on error
+        const fallbackData = {
+          positiveCount: 150,
+          negativeCount: 45,
+          neurtralCount: 80,
+          emotions: {
+            Anger: 12,
+            Neutral: 25,
+            Joy: 35,
+            Love: 20,
+            Surprise: 15,
+            Trust: 28,
+            Sadness: 18,
+            Fear: 8,
+            Disgust: 10
+          },
+          platformSentiments: MOCK_DATA.platformSentiments,
+          comments: MOCK_DATA.comments,
+          trends: null,
+          positiveAreas: MOCK_DATA.positiveAreas,
+          improvementAreas: MOCK_DATA.improvementAreas,
+          approval: 77
+        };
+        
+        setApiData(fallbackData);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [activePeriod]);
+
+  // Transform API data to percentages
+  const getTransformedSentiments = () => {
+    if (!apiData) return { positive: 0, negative: 0, neutral: 0 };
+    
+    const total = apiData.positiveCount + apiData.negativeCount + apiData.neurtralCount;
+    if (total === 0) return { positive: 0, negative: 0, neutral: 0 };
+    
+    return {
+      positive: Math.round((apiData.positiveCount / total) * 100),
+      negative: Math.round((apiData.negativeCount / total) * 100),
+      neutral: Math.round((apiData.neurtralCount / total) * 100)
+    };
+  };
+
+  // Transform API emotions to match dashboard structure
+  const getTransformedEmotions = () => {
+    if (!apiData || !apiData.emotions) {
+      return {
+        joy: 0,
+        love: 0,
+        surprise: 0,
+        trust: 0,
+        anger: 0,
+        sadness: 0,
+        fear: 0,
+        disgust: 0
+      };
+    }
+
+    return {
+      joy: apiData.emotions.Joy || 0,
+      love: apiData.emotions.Love || 0,
+      surprise: apiData.emotions.Surprise || 0,
+      trust: apiData.emotions.Trust || 0,
+      anger: apiData.emotions.Anger || 0,
+      sadness: apiData.emotions.Sadness || 0,
+      fear: apiData.emotions.Fear || 0,
+      disgust: apiData.emotions.Disgust || 0
+    };
+  };
   
   // Tab configuration
   const tabs = [
@@ -267,6 +472,12 @@ export default function Dashboard({ data }) {
   
   // Get sentiment data based on active tab
   const getCurrentSentiments = () => {
+    // Use API data when available for consolidated view
+    if (apiData && activeTab === 'consolidated') {
+      return getTransformedSentiments();
+    }
+    
+    // Fallback logic
     if (activeTab === 'consolidated') {
       return data?.sentiments || MOCK_DATA.consolidated.sentiments;
     }
@@ -275,6 +486,9 @@ export default function Dashboard({ data }) {
   
   // Get approval rating based on active tab
   const getApprovalRate = () => {
+    if (activeTab === 'consolidated' && apiData && apiData.approval) {
+      return apiData.approval;
+    }
     if (activeTab === 'consolidated') {
       return MOCK_DATA.consolidated.approval;
     }
@@ -283,6 +497,9 @@ export default function Dashboard({ data }) {
   
   // Get filtered comments based on active tab
   const getFilteredComments = () => {
+    if (activeTab === 'consolidated' && apiData && apiData.comments) {
+      return apiData.comments;
+    }
     if (activeTab === 'consolidated') {
       return MOCK_DATA.comments;
     }
@@ -296,6 +513,17 @@ export default function Dashboard({ data }) {
       const key = platform.toLowerCase();
       return MOCK_DATA.platformSentiments[key] || { positive: 0, negative: 0, neutral: 0 };
     });
+  };
+  
+  // Get emotion data based on active tab
+  const getCurrentEmotions = () => {
+    // Use API data when available
+    if (apiData && activeTab === 'consolidated') {
+      return getTransformedEmotions();
+    }
+    
+    // Fallback to mock data for individual platforms
+    return MOCK_DATA.emotions[activeTab] || MOCK_DATA.emotions.consolidated;
   };
 
   // Get trend labels based on selected period
@@ -597,6 +825,101 @@ export default function Dashboard({ data }) {
     ],
   };
 
+  // Emotion Analysis - Radar Chart
+  const emotions = getCurrentEmotions();
+  const emotionRadarData = {
+    labels: ['Joy 😊', 'Love ❤️', 'Surprise 😲', 'Trust 🤝', 'Anger 😠', 'Sadness 😢', 'Fear 😨', 'Disgust 🤢'],
+    datasets: [
+      {
+        label: 'Emotion Intensity',
+        data: [
+          emotions.joy,
+          emotions.love,
+          emotions.surprise,
+          emotions.trust,
+          emotions.anger,
+          emotions.sadness,
+          emotions.fear,
+          emotions.disgust,
+        ],
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#ffffff',
+        pointHoverBackgroundColor: '#ffffff',
+        pointHoverBorderColor: '#3b82f6',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      },
+    ],
+  };
+
+  // Emotion Distribution - Horizontal Bar Chart
+  const emotionBarData = {
+    labels: ['Joy 😊', 'Love ❤️', 'Trust 🤝', 'Surprise 😲', 'Sadness 😢', 'Anger 😠', 'Fear 😨', 'Disgust 🤢'],
+    datasets: [
+      {
+        label: 'Percentage',
+        data: [
+          emotions.joy,
+          emotions.love,
+          emotions.trust,
+          emotions.surprise,
+          emotions.sadness,
+          emotions.anger,
+          emotions.fear,
+          emotions.disgust,
+        ],
+        backgroundColor: [
+          '#fbbf24', // Joy - yellow
+          '#ec4899', // Love - pink
+          '#10b981', // Trust - green
+          '#8b5cf6', // Surprise - purple
+          '#3b82f6', // Sadness - blue
+          '#ef4444', // Anger - red
+          '#f97316', // Fear - orange
+          '#6366f1', // Disgust - indigo
+        ],
+        borderRadius: 8,
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  // Emotion Doughnut Chart
+  const emotionDoughnutData = {
+    labels: ['Joy 😊', 'Love ❤️', 'Surprise 😲', 'Trust 🤝', 'Anger 😠', 'Sadness 😢', 'Fear 😨', 'Disgust 🤢'],
+    datasets: [
+      {
+        data: [
+          emotions.joy,
+          emotions.love,
+          emotions.surprise,
+          emotions.trust,
+          emotions.anger,
+          emotions.sadness,
+          emotions.fear,
+          emotions.disgust,
+        ],
+        backgroundColor: [
+          '#fbbf24',  // Joy - yellow
+          '#ec4899',  // Love - pink
+          '#8b5cf6',  // Surprise - purple
+          '#10b981',  // Trust - green
+          '#ef4444',  // Anger - red
+          '#3b82f6',  // Sadness - blue
+          '#f97316',  // Fear - orange
+          '#6366f1',  // Disgust - indigo
+        ],
+        borderWidth: 3,
+        borderColor: '#ffffff',
+        hoverOffset: 15,
+        hoverBorderWidth: 4,
+      },
+    ],
+  };
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
@@ -846,6 +1169,193 @@ export default function Dashboard({ data }) {
     },
   };
 
+  // Emotion Radar Chart Options
+  const radarChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: {
+      duration: 600,
+      easing: 'easeOutQuart',
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 15,
+          font: {
+            size: 11,
+          },
+          color: '#64748b',
+        },
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 8,
+        callbacks: {
+          label: function(context) {
+            return context.dataset.label + ': ' + context.parsed.r + '%';
+          }
+        }
+      }
+    },
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          stepSize: 20,
+          color: '#94a3b8',
+          backdropColor: 'transparent',
+        },
+        grid: {
+          color: '#e2e8f0',
+        },
+        pointLabels: {
+          font: {
+            size: 11,
+          },
+          color: '#475569',
+        },
+      },
+    },
+  };
+
+  // Emotion Horizontal Bar Chart Options
+  const emotionBarOptions = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: {
+      duration: 600,
+      easing: 'easeOutQuart',
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 8,
+        callbacks: {
+          label: function(context) {
+            return context.parsed.x + '%';
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          },
+          color: '#94a3b8',
+        },
+        grid: {
+          color: '#e2e8f0',
+        },
+      },
+      y: {
+        ticks: {
+          color: '#475569',
+          font: {
+            size: 12,
+          },
+        },
+        grid: {
+          display: false,
+        },
+      },
+    },
+  };
+
+  // Emotion Doughnut Chart Options
+  const emotionDoughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 700,
+      easing: 'easeOutQuart',
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 12,
+          font: {
+            size: 11,
+          },
+          color: '#64748b',
+          usePointStyle: true,
+          pointStyle: 'circle',
+        },
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        padding: 14,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 10,
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            return label + ': ' + value + '% (' + percentage + '% of total)';
+          }
+        }
+      }
+    },
+    cutout: '60%',
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-blue-600"></div>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Loading Dashboard Data</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400">Fetching sentiment analysis from API...</div>
+              <div className="text-xs text-slate-500 dark:text-slate-500 mt-2">Period: {periods.find(p => p.id === activePeriod)?.name}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -856,13 +1366,33 @@ export default function Dashboard({ data }) {
         <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
           Comprehensive analysis of public sentiment across multiple platforms
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-          </svg>
-          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-            💡 Tip: Click on any chart element to view detailed analysis
-          </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+            <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+              💡 Tip: Click on any chart element to view detailed analysis
+            </span>
+          </div>
+          <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${
+            apiData && apiData.positiveCount !== undefined 
+              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+          }`}>
+            <div className={`w-2 h-2 rounded-full animate-pulse ${
+              apiData && apiData.positiveCount !== undefined 
+                ? 'bg-green-500' 
+                : 'bg-amber-500'
+            }`}></div>
+            <span className={`text-xs font-medium ${
+              apiData && apiData.positiveCount !== undefined 
+                ? 'text-green-700 dark:text-green-300' 
+                : 'text-amber-700 dark:text-amber-300'
+            }`}>
+              {apiData && apiData.positiveCount !== undefined ? '🌐 Live API Data' : '📦 Mock Data Fallback'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -974,6 +1504,159 @@ export default function Dashboard({ data }) {
                   : getCurrentSentiments().negative > 50
                   ? '😟 Negative'
                   : '😐 Neutral'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Emotion Analysis Section */}
+      <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl shadow-lg border border-purple-200 dark:border-purple-900 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-purple-600 rounded-xl shadow-lg">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Emotion Analysis
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Deep dive into emotional responses expressed in reviews
+            </p>
+          </div>
+        </div>
+
+        {/* Emotion Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Emotion Radar Chart */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg font-semibold text-slate-900 dark:text-white">
+                Emotion Intensity Map
+              </span>
+              <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs rounded-md font-medium">
+                Radar
+              </span>
+            </div>
+            <div className="max-w-sm mx-auto">
+              <Radar data={emotionRadarData} options={radarChartOptions} />
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-600 dark:text-slate-400 text-center">
+                💡 Shows the balance of emotions across all dimensions
+              </p>
+            </div>
+          </div>
+
+          {/* Emotion Horizontal Bar Chart */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg font-semibold text-slate-900 dark:text-white">
+                Emotion Distribution
+              </span>
+              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs rounded-md font-medium">
+                Bar
+              </span>
+            </div>
+            <div className="h-80">
+              <Bar data={emotionBarData} options={emotionBarOptions} />
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-600 dark:text-slate-400 text-center">
+                📊 Comparative view of emotion percentages
+              </p>
+            </div>
+          </div>
+
+          {/* Emotion Doughnut Chart */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg font-semibold text-slate-900 dark:text-white">
+                Emotion Breakdown
+              </span>
+              <span className="px-2 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-xs rounded-md font-medium">
+                Doughnut
+              </span>
+            </div>
+            <div className="max-w-sm mx-auto">
+              <Doughnut data={emotionDoughnutData} options={emotionDoughnutOptions} />
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-600 dark:text-slate-400 text-center">
+                🎯 Proportional view of emotion composition
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Emotion Insights */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          {/* Positive Emotions Summary */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-5 border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">😊</span>
+              <h4 className="text-lg font-semibold text-green-900 dark:text-green-300">
+                Positive Emotions
+              </h4>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-800 dark:text-green-400">Joy:</span>
+                <span className="text-lg font-bold text-green-900 dark:text-green-300">{emotions.joy}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-800 dark:text-green-400">Love:</span>
+                <span className="text-lg font-bold text-green-900 dark:text-green-300">{emotions.love}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-800 dark:text-green-400">Trust:</span>
+                <span className="text-lg font-bold text-green-900 dark:text-green-300">{emotions.trust}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-800 dark:text-green-400">Surprise:</span>
+                <span className="text-lg font-bold text-green-900 dark:text-green-300">{emotions.surprise}%</span>
+              </div>
+              <div className="pt-3 mt-3 border-t border-green-200 dark:border-green-800">
+                <div className="text-sm text-green-800 dark:text-green-400">Total Positive:</div>
+                <div className="text-2xl font-bold text-green-900 dark:text-green-300">
+                  {emotions.joy + emotions.love + emotions.trust + emotions.surprise}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Negative Emotions Summary */}
+          <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-5 border border-red-200 dark:border-red-800">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">😟</span>
+              <h4 className="text-lg font-semibold text-red-900 dark:text-red-300">
+                Negative Emotions
+              </h4>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-red-800 dark:text-red-400">Anger:</span>
+                <span className="text-lg font-bold text-red-900 dark:text-red-300">{emotions.anger}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-red-800 dark:text-red-400">Sadness:</span>
+                <span className="text-lg font-bold text-red-900 dark:text-red-300">{emotions.sadness}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-red-800 dark:text-red-400">Fear:</span>
+                <span className="text-lg font-bold text-red-900 dark:text-red-300">{emotions.fear}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-red-800 dark:text-red-400">Disgust:</span>
+                <span className="text-lg font-bold text-red-900 dark:text-red-300">{emotions.disgust}%</span>
+              </div>
+              <div className="pt-3 mt-3 border-t border-red-200 dark:border-red-800">
+                <div className="text-sm text-red-800 dark:text-red-400">Total Negative:</div>
+                <div className="text-2xl font-bold text-red-900 dark:text-red-300">
+                  {emotions.anger + emotions.sadness + emotions.fear + emotions.disgust}%
+                </div>
               </div>
             </div>
           </div>
