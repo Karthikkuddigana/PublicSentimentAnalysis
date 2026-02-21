@@ -13,9 +13,9 @@ def get_sentiment_counts(organization_id: str):
 
     rows = response.data
 
-    positive = sum(1 for r in rows if r["sentiment"] == "positive")
-    negative = sum(1 for r in rows if r["sentiment"] == "negative")
-    neutral = sum(1 for r in rows if r["sentiment"] == "neutral")
+    positive = sum(1 for r in rows if r["sentiment"] == "Positive")
+    negative = sum(1 for r in rows if r["sentiment"] == "Negative")
+    neutral = sum(1 for r in rows if r["sentiment"] == "Neutral")
 
     return {
         "positiveCount": positive,
