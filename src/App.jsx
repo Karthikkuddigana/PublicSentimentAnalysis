@@ -6,8 +6,7 @@ import Login from './pages/Login';
 import DataInput from './components/DataInput';
 import Dashboard from './components/Dashboard';
 import ReportDownload from './components/ReportDownload';
-import Header from './components/Header'; // New import
-import './App.css';
+import Header from './components/Header';
 
 function MainApp() {
   const [analysisData, setAnalysisData] = useState(null);
@@ -17,15 +16,18 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Header />
 
-      {/* ← This is the key fix: constrain the main content area */}
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
         <DataInput onSubmit={handleAnalysis} />
 
-        {analysisData && <Dashboard data={analysisData} />}
-        {analysisData && <ReportDownload data={analysisData} />}
+        {analysisData && (
+          <div className="space-y-6">
+            <Dashboard data={analysisData} />
+            <ReportDownload data={analysisData} />
+          </div>
+        )}
       </main>
     </div>
   );

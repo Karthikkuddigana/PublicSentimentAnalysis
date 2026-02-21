@@ -3,19 +3,22 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // null = not logged in
+  const [user, setUser] = useState(null);
 
-  // Simulate checking if already logged in (e.g. from localStorage)
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Failed to parse stored user:', error);
+        localStorage.removeItem('user');
+      }
     }
   }, []);
 
   const login = (username, password) => {
     // TODO: Replace with real API call to backend later
-    // For now: mock success if username & password are non-empty
     if (username && password) {
       const userData = { username, token: 'fake-jwt-token' };
       setUser(userData);
