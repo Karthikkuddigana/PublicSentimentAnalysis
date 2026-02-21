@@ -64,10 +64,12 @@ def get_sentiment_counts(organization_id: str, platform: str = "consolidated", p
             
             rows = response.data
             print(f"YouTube records fetched: {len(rows)}")
+            if rows:
+                print(f"Sample YouTube sentiment values: {[r.get('sentiment') for r in rows[:3]]}")
             
-            positive += sum(1 for r in rows if r.get("sentiment") == "positive")
-            negative += sum(1 for r in rows if r.get("sentiment") == "negative")
-            neutral += sum(1 for r in rows if r.get("sentiment") == "neutral")
+            positive += sum(1 for r in rows if r.get("sentiment", "").lower() == "positive")
+            negative += sum(1 for r in rows if r.get("sentiment", "").lower() == "negative")
+            neutral += sum(1 for r in rows if r.get("sentiment", "").lower() == "neutral")
         except Exception as e:
             print(f"Error fetching YouTube data: {e}")
     
@@ -85,10 +87,12 @@ def get_sentiment_counts(organization_id: str, platform: str = "consolidated", p
             
             rows = response.data
             print(f"Manual records fetched: {len(rows)}")
+            if rows:
+                print(f"Sample Manual sentiment values: {[r.get('sentiment') for r in rows[:3]]}")
             
-            positive += sum(1 for r in rows if r.get("sentiment") == "positive")
-            negative += sum(1 for r in rows if r.get("sentiment") == "negative")
-            neutral += sum(1 for r in rows if r.get("sentiment") == "neutral")
+            positive += sum(1 for r in rows if r.get("sentiment", "").lower() == "positive")
+            negative += sum(1 for r in rows if r.get("sentiment", "").lower() == "negative")
+            neutral += sum(1 for r in rows if r.get("sentiment", "").lower() == "neutral")
         except Exception as e:
             print(f"Error fetching manual reviews data: {e}")
     
