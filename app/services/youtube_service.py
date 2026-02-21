@@ -7,8 +7,10 @@ from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from app.services.sentiment_service import analyze_sentiment, analyze_emotion
-
+from app.services.sentiment_service import (
+    batch_analyze_sentiment,
+    batch_analyze_emotion
+)
 
 
 # =========================================================
@@ -69,13 +71,16 @@ def fetch_comments(
     max_comments: int = 100
 ) -> List[Dict]:
     """
-    Fetch comments for a video with sentiment scoring.
+    Fetch comments for a video.
+    Uses batch sentiment + emotion inference.
     Supports pagination up to max_comments.
     """
+
     comments: List[Dict] = []
     next_page_token = None
 
     while len(comments) < max_comments:
+
         params = {
             "part": "snippet",
             "videoId": video_id,
@@ -87,45 +92,61 @@ def fetch_comments(
         if next_page_token:
             params["pageToken"] = next_page_token
 
-        response = requests.get(YOUTUBE_COMMENTS_URL, params=params, timeout=30)
+        response = requests.get(
+            YOUTUBE_COMMENTS_URL,
+            params=params,
+            timeout=30
+        )
         response.raise_for_status()
+
         data = response.json()
+        items = data.get("items", [])
 
-        for item in data.get("items", []):
+        if not items:
+            break
+
+        # ------------------------------
+        # Step 1: Extract raw data
+        # ------------------------------
+        texts: List[str] = []
+        raw_comments: List[Dict] = []
+
+        for item in items:
             snippet = item["snippet"]["topLevelComment"]["snippet"]
-            text = snippet["textDisplay"]
+            text = snippet.get("textDisplay", "")
 
-            sentiment_data = analyze_sentiment(text, benchmark)
-            emotion_data = analyze_emotion(text)
+            texts.append(text)
 
-            comments.append({
+            raw_comments.append({
                 "source": "youtube",
                 "video_id": video_id,
                 "author": snippet.get("authorDisplayName"),
                 "text": text,
                 "published_at": snippet.get("publishedAt"),
                 "like_count": snippet.get("likeCount", 0),
-
-                # Sentiment
-                "sentiment": sentiment_data["sentiment"],
-                "raw_score": sentiment_data["raw_score"],
-                "scaled_score": sentiment_data["scaled_score"],
-                "benchmark": sentiment_data["benchmark"],
-                "sentiment_confidence": sentiment_data["confidence"],
-
-                # Emotion
-                "emotion": emotion_data["emotion"],
-                "emotion_confidence": emotion_data["emotion_confidence"],
-
                 "fetched_at": datetime.utcnow().isoformat(),
             })
+
+        # ------------------------------
+        # Step 2: Batch ML Inference
+        # ------------------------------
+        sentiment_results = batch_analyze_sentiment(texts, benchmark)
+        emotion_results = batch_analyze_emotion(texts)
+
+        # ------------------------------
+        # Step 3: Merge Results
+        # ------------------------------
+        for i in range(len(raw_comments)):
+            raw_comments[i].update(sentiment_results[i])
+            raw_comments[i].update(emotion_results[i])
+
+        comments.extend(raw_comments)
 
         next_page_token = data.get("nextPageToken")
         if not next_page_token:
             break
 
-    return comments
-
+    return comments[:max_comments]
 
 # =========================================================
 # STORAGE HELPERS
@@ -208,7 +229,7 @@ def _write_metadata(
 
 def run_ingestion(
     brand: str,
-    title_keyword: str,
+    keyword: str,
     storage: str = "csv",
     benchmark: int = 5,
     max_videos: int = 5,
@@ -224,7 +245,7 @@ def run_ingestion(
 
     all_comments: List[Dict] = []
 
-    video_ids = search_videos(brand, title_keyword, max_results=max_videos)
+    video_ids = search_videos(brand, keyword, max_results=max_videos)
 
     for video_id in video_ids:
         comments = fetch_comments(
@@ -237,10 +258,10 @@ def run_ingestion(
     file_path = None
 
     if storage == "csv":
-        file_path = save_to_csv(all_comments, brand, title_keyword)
+        file_path = save_to_csv(all_comments, brand, keyword)
 
     elif storage == "excel":
-        file_path = save_to_excel(all_comments, brand, title_keyword)
+        file_path = save_to_excel(all_comments, brand, keyword)
 
     elif storage == "supabase":
         save_to_supabase(all_comments)
@@ -252,5 +273,6 @@ def run_ingestion(
         "records": len(all_comments),
         "file": file_path,
         "videos_processed": len(video_ids),
-        "benchmark": benchmark
+        "benchmark": benchmark,
+        "comments": all_comments
     }
