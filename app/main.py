@@ -7,6 +7,7 @@ from app.api.review import router as review_router
 from app.api import dashboard
 from app.api import manual_reviews
 from app.api import insights
+from app.api import auth
 
 app = FastAPI(title="YouTube Sentiment Ingestion API")
 
@@ -33,3 +34,4 @@ app.include_router(review_router)
 app.include_router(dashboard.router)
 app.include_router(manual_reviews.router)
 app.include_router(insights.router)
+app.include_router(auth.router)
