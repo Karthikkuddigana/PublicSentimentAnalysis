@@ -1,4 +1,5 @@
 import { Pie, Line, Bar, Doughnut } from 'react-chartjs-2';
+import { useState } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -25,6 +26,16 @@ ChartJS.register(
 );
 
 export default function Dashboard({ data }) {
+  const [activeTab, setActiveTab] = useState('consolidated');
+  
+  // Tab configuration
+  const tabs = [
+    { id: 'consolidated', name: 'Consolidated Overview' },
+    { id: 'instagram', name: 'Instagram' },
+    { id: 'twitter', name: 'Twitter' },
+    { id: 'youtube', name: 'YouTube' }
+  ];
+
   // Dummy data for different platforms
   const platforms = ['Instagram', 'Twitter', 'Facebook', 'YouTube', 'Reddit'];
   
@@ -214,6 +225,36 @@ export default function Dashboard({ data }) {
       ]
     }
   ];
+
+  // Platform-specific data
+  const platformData = {
+    instagram: {
+      sentiments: { positive: 65, negative: 15, neutral: 20 },
+      approval: 72,
+      trend: [58, 60, 63, 62, 65, 67, 70],
+      comments: comments.filter(c => c.platform === 'Instagram')
+    },
+    twitter: {
+      sentiments: { positive: 58, negative: 17, neutral: 25 },
+      approval: 65,
+      trend: [52, 54, 56, 55, 58, 60, 61],
+      comments: comments.filter(c => c.platform === 'Twitter')
+    },
+    youtube: {
+      sentiments: { positive: 55, negative: 15, neutral: 30 },
+      approval: 68,
+      trend: [48, 50, 52, 53, 55, 57, 58],
+      comments: comments.filter(c => c.platform === 'YouTube')
+    }
+  };
+
+  // Get current platform data based on active tab
+  const getCurrentSentiments = () => {
+    if (activeTab === 'consolidated') {
+      return data.sentiments;
+    }
+    return platformData[activeTab].sentiments;
+  };
   
   // Overall Sentiment Distribution (Pie Chart)
   const sentimentData = {
@@ -221,9 +262,9 @@ export default function Dashboard({ data }) {
     datasets: [
       {
         data: [
-          data.sentiments.positive,
-          data.sentiments.negative,
-          data.sentiments.neutral,
+          getCurrentSentiments().positive,
+          getCurrentSentiments().negative,
+          getCurrentSentiments().neutral,
         ],
         backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
         borderWidth: 0,
@@ -232,11 +273,16 @@ export default function Dashboard({ data }) {
   };
 
   // Public Approval Rating (Doughnut Chart)
+  const getApprovalRate = () => {
+    if (activeTab === 'consolidated') return 68;
+    return platformData[activeTab].approval;
+  };
+
   const approvalData = {
     labels: ['Approved', 'Disapproved'],
     datasets: [
       {
-        data: [68, 32],
+        data: [getApprovalRate(), 100 - getApprovalRate()],
         backgroundColor: ['#3b82f6', '#94a3b8'],
         borderWidth: 0,
       },
@@ -305,12 +351,28 @@ export default function Dashboard({ data }) {
   };
 
   // Sentiment Trend Over Time (Line Chart)
+  const getTrendData = () => {
+    if (activeTab === 'consolidated') {
+      return {
+        positive: [55, 58, 62, 60, 65, 68, 70],
+        neutral: [30, 28, 25, 27, 23, 20, 18],
+        negative: [15, 14, 13, 13, 12, 12, 12]
+      };
+    }
+    const trend = platformData[activeTab].trend;
+    const positive = trend;
+    const neutral = trend.map(v => 100 - v - 15);
+    const negative = new Array(7).fill(15);
+    return { positive, neutral, negative };
+  };
+
+  const trends = getTrendData();
   const trendData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
     datasets: [
       {
         label: 'Positive',
-        data: [55, 58, 62, 60, 65, 68, 70],
+        data: trends.positive,
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         tension: 0.4,
@@ -318,7 +380,7 @@ export default function Dashboard({ data }) {
       },
       {
         label: 'Neutral',
-        data: [30, 28, 25, 27, 23, 20, 18],
+        data: trends.neutral,
         borderColor: '#f59e0b',
         backgroundColor: 'rgba(245, 158, 11, 0.1)',
         tension: 0.4,
@@ -326,7 +388,7 @@ export default function Dashboard({ data }) {
       },
       {
         label: 'Negative',
-        data: [15, 14, 13, 13, 12, 12, 12],
+        data: trends.negative,
         borderColor: '#ef4444',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         tension: 0.4,
@@ -447,6 +509,19 @@ export default function Dashboard({ data }) {
     },
   };
 
+  // Get filtered comments based on active tab
+  const getFilteredComments = () => {
+    if (activeTab === 'consolidated') {
+      return comments;
+    }
+    const platformName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+    return comments.filter(c => c.platform.toLowerCase() === activeTab.toLowerCase());
+  };
+
+  const filteredComments = getFilteredComments();
+  const filteredPositiveComments = filteredComments.filter(c => c.sentiment === 'positive').slice(0, 4);
+  const filteredNegativeComments = filteredComments.filter(c => c.sentiment === 'negative').slice(0, 4);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -457,6 +532,25 @@ export default function Dashboard({ data }) {
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Comprehensive analysis of public sentiment across multiple platforms
         </p>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-4">
+        <div className="flex flex-wrap justify-center gap-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-8 py-3 rounded-xl font-semibold text-sm transition-all ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-md scale-105'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {tab.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Overall Metrics */}
@@ -480,7 +574,7 @@ export default function Dashboard({ data }) {
             <Doughnut data={approvalData} options={chartOptions} />
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">68%</div>
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{getApprovalRate()}%</div>
             <div className="text-sm text-slate-600 dark:text-slate-400">Approval Rate</div>
           </div>
         </div>
@@ -494,19 +588,19 @@ export default function Dashboard({ data }) {
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600 dark:text-slate-400">Positive:</span>
               <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                {data.sentiments.positive}%
+                {getCurrentSentiments().positive}%
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600 dark:text-slate-400">Neutral:</span>
               <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
-                {data.sentiments.neutral}%
+                {getCurrentSentiments().neutral}%
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600 dark:text-slate-400">Negative:</span>
               <span className="text-lg font-bold text-red-600 dark:text-red-400">
-                {data.sentiments.negative}%
+                {getCurrentSentiments().negative}%
               </span>
             </div>
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -514,9 +608,9 @@ export default function Dashboard({ data }) {
                 Overall Sentiment:
               </div>
               <div className="text-xl font-bold text-slate-900 dark:text-white">
-                {data.sentiments.positive > 50
+                {getCurrentSentiments().positive > 50
                   ? '😊 Positive'
-                  : data.sentiments.negative > 50
+                  : getCurrentSentiments().negative > 50
                   ? '😟 Negative'
                   : '😐 Neutral'}
               </div>
@@ -525,51 +619,65 @@ export default function Dashboard({ data }) {
         </div>
       </div>
 
-      {/* Platform Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Platform Comparison - Stacked */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-            Platform Comparison (Stacked)
-          </h3>
-          <Bar data={platformComparisonData} options={stackedBarOptions} />
-        </div>
+      {/* Platform Analysis - Only show in consolidated view */}
+      {activeTab === 'consolidated' && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Platform Comparison - Stacked */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                Platform Comparison (Stacked)
+              </h3>
+              <Bar data={platformComparisonData} options={stackedBarOptions} />
+            </div>
 
-        {/* Sentiment Trend Over Time */}
+            {/* Sentiment Trend Over Time */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                Sentiment Trend Over Time
+              </h3>
+              <Line data={trendData} options={lineChartOptions} />
+            </div>
+          </div>
+
+          {/* Detailed Platform Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Positive Reviews by Platform */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                Positive Reviews by Platform
+              </h3>
+              <Bar data={positiveByPlatformData} options={barChartOptions} />
+            </div>
+
+            {/* Neutral Reviews by Platform */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                Neutral Reviews by Platform
+              </h3>
+              <Bar data={neutralByPlatformData} options={barChartOptions} />
+            </div>
+
+            {/* Negative Reviews by Platform */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                Negative Reviews by Platform
+              </h3>
+              <Bar data={negativeByPlatformData} options={barChartOptions} />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Individual Platform Trend - Only show in platform-specific views */}
+      {activeTab !== 'consolidated' && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-            Sentiment Trend Over Time
+            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Sentiment Trend Over Time
           </h3>
           <Line data={trendData} options={lineChartOptions} />
         </div>
-      </div>
-
-      {/* Detailed Platform Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Positive Reviews by Platform */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-            Positive Reviews by Platform
-          </h3>
-          <Bar data={positiveByPlatformData} options={barChartOptions} />
-        </div>
-
-        {/* Neutral Reviews by Platform */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-            Neutral Reviews by Platform
-          </h3>
-          <Bar data={neutralByPlatformData} options={barChartOptions} />
-        </div>
-
-        {/* Negative Reviews by Platform */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-            Negative Reviews by Platform
-          </h3>
-          <Bar data={negativeByPlatformData} options={barChartOptions} />
-        </div>
-      </div>
+      )}
 
       {/* Comments Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -587,7 +695,7 @@ export default function Dashboard({ data }) {
           </div>
           
           <div className="space-y-4">
-            {positiveComments.map((comment) => (
+            {filteredPositiveComments.map((comment) => (
               <div
                 key={comment.id}
                 className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-xl hover:shadow-md transition-shadow"
@@ -638,7 +746,7 @@ export default function Dashboard({ data }) {
           </div>
           
           <div className="space-y-4">
-            {negativeComments.map((comment) => (
+            {filteredNegativeComments.map((comment) => (
               <div
                 key={comment.id}
                 className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-xl hover:shadow-md transition-shadow"
