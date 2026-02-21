@@ -8,8 +8,8 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login', { replace: true });
   };
 
@@ -66,10 +66,10 @@ export default function Header() {
           {user && (
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center text-white font-medium text-sm shadow">
-                {user.username?.charAt(0).toUpperCase() || 'U'}
+                {(user.user_metadata?.username?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase()}
               </div>
               <span className="hidden sm:inline text-sm font-medium text-white/90">
-                {user.username || 'User'}
+                {user.user_metadata?.username || user.email?.split('@')[0] || 'User'}
               </span>
             </div>
           )}

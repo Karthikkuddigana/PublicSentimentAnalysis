@@ -1,79 +1,79 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { supabase } from '../lib/supabase';
 
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function Signup() {
+  const [formData, setFormData] = useState({
+    organizationName: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [supabaseConnected, setSupabaseConnected] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  // Check Supabase connection on mount
-  useEffect(() => {
-    const checkConnection = async () => {
-      const hasUrl = !!import.meta.env.VITE_SUPABASE_URL;
-      const hasKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
-      const hasClient = !!supabase?.auth;
-      
-      console.log('🔍 Connection check:', { hasUrl, hasKey, hasClient });
-      setSupabaseConnected(hasUrl && hasKey && hasClient);
-      
-      if (!hasUrl || !hasKey) {
-        console.error('❌ Supabase environment variables not found!');
-        console.error('Did you restart the dev server after creating .env.local?');
-      }
-    };
-    
-    checkConnection();
-  }, []);
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setIsLoading(true);
 
-    console.log('Attempting login with:', { email, password: '***' });
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
 
-    const { success, error: authError } = await login(email, password);
-    
-    console.log('Login result:', { success, error: authError });
-    
-    if (success) {
-      navigate('/dashboard', { replace: true });
-    } else {
-      // Show more detailed error messages
-      let errorMessage = authError || 'Invalid email or password';
-      
-      // Handle specific Supabase error messages
-      if (authError) {
-        if (authError.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials.';
-        } else if (authError.includes('Email not confirmed')) {
-          errorMessage = 'Please verify your email address. Check your inbox for the confirmation link.';
-        } else if (authError.includes('User not found')) {
-          errorMessage = 'No account found with this email. Please sign up first.';
-        }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
+    const { success, error: authError, needsEmailConfirmation } = await signup(
+      formData.email,
+      formData.password,
+      { 
+        username: formData.username,
+        organizationName: formData.organizationName
       }
-      
-      setError(errorMessage);
+    );
+
+    if (success) {
+      if (needsEmailConfirmation) {
+        setSuccessMessage('Account created! Please check your email to confirm your account.');
+        setIsLoading(false);
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    } else {
+      setError(authError || 'Failed to create account. Please try again.');
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignup = async () => {
     setError('');
+    setSuccessMessage('');
     setIsLoading(true);
 
     const { success, error: authError } = await loginWithGoogle();
     
     if (!success) {
-      setError(authError || 'Google login failed. Please try again.');
+      setError(authError || 'Google signup failed. Please try again.');
       setIsLoading(false);
     }
     // Note: Google OAuth will redirect, so no need to navigate here
@@ -109,51 +109,16 @@ export default function Login() {
             Public Sentiment Analysis
           </h1>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Welcome back
+            Create Account
           </h2>
         </div>
 
-        {/* Login Card */}
+        {/* Signup Card */}
         <div className="p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-3xl">
           
-          {/* Supabase Connection Status */}
-          {!supabaseConnected && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-              <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <div>
-                  <p className="text-sm font-semibold text-red-900 dark:text-red-300 mb-1">
-                    ⚠️ Supabase Not Connected
-                  </p>
-                  <p className="text-xs text-red-800 dark:text-red-400 mb-2">
-                    Environment variables not loaded. Did you restart the dev server?
-                  </p>
-                  <p className="text-xs text-red-800 dark:text-red-400 font-mono bg-red-100 dark:bg-red-900/40 p-2 rounded">
-                    Stop server (Ctrl+C) → npm run dev
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {supabaseConnected && (
-            <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-xs font-medium text-green-800 dark:text-green-300">
-                  ✅ Connected to Supabase
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {/* Google Login Button */}
+          {/* Google Signup Button */}
           <button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignup}
             disabled={isLoading}
             className="w-full px-6 py-4 mb-6 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-750 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-3"
           >
@@ -182,6 +147,53 @@ export default function Login() {
               </div>
             )}
 
+            {/* Success Message */}
+            {successMessage && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                <p className="text-sm font-medium text-green-800 dark:text-green-200">{successMessage}</p>
+              </div>
+            )}
+
+            {/* Organization Name Field */}
+            <div>
+              <label 
+                htmlFor="organizationName"
+                className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1"
+              >
+                Organization Name
+              </label>
+              <input
+                id="organizationName"
+                name="organizationName"
+                type="text"
+                required
+                value={formData.organizationName}
+                onChange={handleChange}
+                className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 border-none rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Your organization name"
+              />
+            </div>
+
+            {/* Username Field */}
+            <div>
+              <label 
+                htmlFor="username"
+                className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1"
+              >
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 border-none rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Choose a username"
+              />
+            </div>
+
             {/* Email Field */}
             <div>
               <label 
@@ -192,10 +204,11 @@ export default function Login() {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
                 className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 border-none rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
                 placeholder="your@email.com"
               />
@@ -211,10 +224,31 @@ export default function Login() {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 border-none rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label 
+                htmlFor="confirmPassword"
+                className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1"
+              >
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 border-none rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
                 placeholder="••••••••"
               />
@@ -226,39 +260,21 @@ export default function Login() {
               disabled={isLoading}
               className="w-full px-6 py-4 mt-8 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isLoading ? 'Verifying...' : 'Continue to Dashboard'}
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
-          {/* Sign up link */}
+          {/* Sign in link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Don't have an account?{' '}
+              Already have an account?{' '}
               <Link 
-                to="/signup" 
+                to="/login" 
                 className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
               >
-                Sign up
+                Sign in
               </Link>
             </p>
-          </div>
-
-          {/* Development Helper */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-            <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">
-                  First time? Create an account
-                </p>
-                <p className="text-xs text-blue-800 dark:text-blue-400">
-                  If you haven't created an account yet, click "Sign up" above to register. 
-                  After signing up, check your email for a confirmation link (if email confirmation is enabled in your Supabase settings).
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import ReviewForm from './pages/ReviewForm';
 import DataInput from './components/DataInput';
 import Dashboard from './components/Dashboard';
@@ -70,8 +71,9 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public route */}
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>

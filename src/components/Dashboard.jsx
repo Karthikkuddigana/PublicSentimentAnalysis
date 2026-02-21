@@ -25,22 +25,27 @@ ChartJS.register(
   Title
 );
 
-export default function Dashboard({ data }) {
-  const [activeTab, setActiveTab] = useState('consolidated');
+// ==================== MOCK DATA - REPLACE WITH API CALLS ====================
+const MOCK_DATA = {
+  platforms: ['Instagram', 'Twitter', 'Facebook', 'YouTube', 'Reddit'],
   
-  // Tab configuration
-  const tabs = [
-    { id: 'consolidated', name: 'Consolidated Overview' },
-    { id: 'instagram', name: 'Instagram' },
-    { id: 'twitter', name: 'Twitter' },
-    { id: 'youtube', name: 'YouTube' }
-  ];
-
-  // Dummy data for different platforms
-  const platforms = ['Instagram', 'Twitter', 'Facebook', 'YouTube', 'Reddit'];
+  // Consolidated sentiment data
+  consolidated: {
+    sentiments: { positive: 60, negative: 20, neutral: 20 },
+    approval: 68,
+  },
   
-  // Sample comments data
-  const comments = [
+  // Platform-specific sentiment data
+  platformSentiments: {
+    instagram: { positive: 65, negative: 15, neutral: 20, approval: 72 },
+    twitter: { positive: 58, negative: 17, neutral: 25, approval: 65 },
+    youtube: { positive: 55, negative: 15, neutral: 30, approval: 68 },
+    facebook: { positive: 72, negative: 10, neutral: 18, approval: 75 },
+    reddit: { positive: 48, negative: 20, neutral: 32, approval: 60 },
+  },
+  
+  // Comments/Reviews data
+  comments: [
     {
       id: 1,
       platform: 'Instagram',
@@ -48,7 +53,8 @@ export default function Dashboard({ data }) {
       rating: 5,
       text: 'Absolutely love this product! The quality exceeded my expectations and the customer service was outstanding. Highly recommend to everyone!',
       author: '@sarah_johnson',
-      date: '2 days ago'
+      date: '2 days ago',
+      timestamp: '2024-02-19T10:30:00Z'
     },
     {
       id: 2,
@@ -57,7 +63,8 @@ export default function Dashboard({ data }) {
       rating: 5,
       text: 'Best purchase I\'ve made this year! The features are incredible and it works flawlessly. Worth every penny. 🌟',
       author: '@tech_guru_mike',
-      date: '5 hours ago'
+      date: '5 hours ago',
+      timestamp: '2024-02-21T05:00:00Z'
     },
     {
       id: 3,
@@ -66,7 +73,8 @@ export default function Dashboard({ data }) {
       rating: 5,
       text: 'I was skeptical at first, but this has completely changed my daily routine. Amazing value for money and exceptional quality!',
       author: 'Emily Chen',
-      date: '1 day ago'
+      date: '1 day ago',
+      timestamp: '2024-02-20T14:00:00Z'
     },
     {
       id: 4,
@@ -75,7 +83,8 @@ export default function Dashboard({ data }) {
       rating: 5,
       text: 'After using this for 3 months, I can confidently say this is the best in its category. The attention to detail is remarkable!',
       author: 'David Miller',
-      date: '3 days ago'
+      date: '3 days ago',
+      timestamp: '2024-02-18T09:00:00Z'
     },
     {
       id: 5,
@@ -84,7 +93,8 @@ export default function Dashboard({ data }) {
       rating: 1,
       text: 'Very disappointed with the quality. Not as advertised and customer support was unhelpful. Would not recommend.',
       author: 'u/honest_reviewer',
-      date: '1 day ago'
+      date: '1 day ago',
+      timestamp: '2024-02-20T16:00:00Z'
     },
     {
       id: 6,
@@ -93,7 +103,8 @@ export default function Dashboard({ data }) {
       rating: 2,
       text: 'Expected much better for the price. The product feels cheap and broke after just a week of use. Really frustrating experience.',
       author: '@critical_buyer',
-      date: '4 hours ago'
+      date: '4 hours ago',
+      timestamp: '2024-02-21T06:00:00Z'
     },
     {
       id: 7,
@@ -102,7 +113,8 @@ export default function Dashboard({ data }) {
       rating: 1,
       text: 'Worst purchase ever. Nothing works as promised. Save your money and look elsewhere. Total waste!',
       author: '@disappointed_user',
-      date: '6 hours ago'
+      date: '6 hours ago',
+      timestamp: '2024-02-21T04:00:00Z'
     },
     {
       id: 8,
@@ -111,15 +123,13 @@ export default function Dashboard({ data }) {
       rating: 2,
       text: 'The shipping took forever and when it finally arrived, it was damaged. Customer service refused to help. Very poor experience.',
       author: 'Robert Thompson',
-      date: '2 days ago'
+      date: '2 days ago',
+      timestamp: '2024-02-19T11:00:00Z'
     }
-  ];
-
-  const positiveComments = comments.filter(c => c.sentiment === 'positive').slice(0, 4);
-  const negativeComments = comments.filter(c => c.sentiment === 'negative').slice(0, 4);
-
-  // Summary data for positive areas
-  const positiveAreas = [
+  ],
+  
+  // Positive areas summary
+  positiveAreas: [
     {
       department: 'Product Quality',
       score: 92,
@@ -160,10 +170,10 @@ export default function Dashboard({ data }) {
       ],
       trend: 'up'
     }
-  ];
-
-  // Summary data for areas of improvement
-  const improvementAreas = [
+  ],
+  
+  // Areas needing improvement
+  improvementAreas: [
     {
       department: 'Shipping & Delivery',
       score: 45,
@@ -224,37 +234,187 @@ export default function Dashboard({ data }) {
         'Maintain up-to-date FAQ section'
       ]
     }
+  ]
+};
+// ==================== END MOCK DATA ====================
+
+export default function Dashboard({ data }) {
+  const [activeTab, setActiveTab] = useState('consolidated');
+  const [clickedData, setClickedData] = useState(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [activePeriod, setActivePeriod] = useState('7d');
+  
+  // Tab configuration
+  const tabs = [
+    { id: 'consolidated', name: 'Consolidated Overview' },
+    { id: 'instagram', name: 'Instagram' },
+    { id: 'twitter', name: 'Twitter' },
+    { id: 'youtube', name: 'YouTube' }
   ];
 
-  // Platform-specific data
-  const platformData = {
-    instagram: {
-      sentiments: { positive: 65, negative: 15, neutral: 20 },
-      approval: 72,
-      trend: [58, 60, 63, 62, 65, 67, 70],
-      comments: comments.filter(c => c.platform === 'Instagram')
-    },
-    twitter: {
-      sentiments: { positive: 58, negative: 17, neutral: 25 },
-      approval: 65,
-      trend: [52, 54, 56, 55, 58, 60, 61],
-      comments: comments.filter(c => c.platform === 'Twitter')
-    },
-    youtube: {
-      sentiments: { positive: 55, negative: 15, neutral: 30 },
-      approval: 68,
-      trend: [48, 50, 52, 53, 55, 57, 58],
-      comments: comments.filter(c => c.platform === 'YouTube')
+  // Period filter configuration
+  const periods = [
+    { id: '1d', name: '1 Day', label: '1D' },
+    { id: '7d', name: '7 Days', label: '7D' },
+    { id: '1m', name: '1 Month', label: '1M' },
+    { id: '3m', name: '3 Months', label: '3M' },
+    { id: '6m', name: '6 Months', label: '6M' },
+    { id: '1y', name: '1 Year', label: '1Y' }
+  ];
+
+  // ==================== DATA FILTERING FUNCTIONS ====================
+  // These functions will be replaced with API calls
+  
+  // Get sentiment data based on active tab
+  const getCurrentSentiments = () => {
+    if (activeTab === 'consolidated') {
+      return data?.sentiments || MOCK_DATA.consolidated.sentiments;
+    }
+    return MOCK_DATA.platformSentiments[activeTab] || { positive: 0, negative: 0, neutral: 0 };
+  };
+  
+  // Get approval rating based on active tab
+  const getApprovalRate = () => {
+    if (activeTab === 'consolidated') {
+      return MOCK_DATA.consolidated.approval;
+    }
+    return MOCK_DATA.platformSentiments[activeTab]?.approval || 0;
+  };
+  
+  // Get filtered comments based on active tab
+  const getFilteredComments = () => {
+    if (activeTab === 'consolidated') {
+      return MOCK_DATA.comments;
+    }
+    const platformName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+    return MOCK_DATA.comments.filter(c => c.platform.toLowerCase() === activeTab.toLowerCase());
+  };
+  
+  // Get platform comparison data
+  const getPlatformComparisonData = () => {
+    return MOCK_DATA.platforms.map(platform => {
+      const key = platform.toLowerCase();
+      return MOCK_DATA.platformSentiments[key] || { positive: 0, negative: 0, neutral: 0 };
+    });
+  };
+
+  // Get trend labels based on selected period
+  const getTrendLabels = () => {
+    switch (activePeriod) {
+      case '1d':
+        return ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM', '11 PM'];
+      case '7d':
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      case '1m':
+        return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      case '3m':
+        return ['Month 1', 'Month 2', 'Month 3'];
+      case '6m':
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      case '1y':
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      default:
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    }
+  };
+  
+  // Generate trend data based on period and platform
+  // TODO: Replace with API call - GET /api/dashboard/trends?period={activePeriod}&platform={activeTab}
+  const getTrendData = () => {
+    const dataPoints = getTrendLabels().length;
+    const currentSentiments = getCurrentSentiments();
+    
+    // Generate realistic trend data based on current sentiments
+    return {
+      positive: Array.from({ length: dataPoints }, (_, i) => 
+        currentSentiments.positive + Math.sin(i * 0.5) * 5 + (Math.random() - 0.5) * 3
+      ).map(v => Math.max(0, Math.min(100, Math.round(v)))),
+      neutral: Array.from({ length: dataPoints }, (_, i) => 
+        currentSentiments.neutral + Math.cos(i * 0.3) * 4 + (Math.random() - 0.5) * 2
+      ).map(v => Math.max(0, Math.min(100, Math.round(v)))),
+      negative: Array.from({ length: dataPoints }, (_, i) => 
+        currentSentiments.negative + Math.sin(i * 0.4) * 2 + (Math.random() - 0.5) * 1
+      ).map(v => Math.max(0, Math.min(100, Math.round(v))))
+    };
+  };
+  // ==================== END DATA FILTERING FUNCTIONS ====================
+
+  // Handler for chart clicks
+  const handleChartClick = async (event, elements, chartType) => {
+    if (elements.length > 0) {
+      const clickedElement = elements[0];
+      const datasetIndex = clickedElement.datasetIndex;
+      const index = clickedElement.index;
+      
+      // Get the clicked label and value
+      let label, value, category;
+      
+      if (chartType === 'pie' || chartType === 'doughnut') {
+        label = sentimentData.labels[index];
+        value = sentimentData.datasets[0].data[index];
+        category = label.toLowerCase();
+      } else if (chartType === 'bar') {
+        label = platformComparisonData.labels[index];
+        value = platformComparisonData.datasets[datasetIndex].data[index];
+        category = `${platformComparisonData.datasets[datasetIndex].label}-${label}`;
+      } else if (chartType === 'line') {
+        label = trendData.labels[index];
+        value = trendData.datasets[datasetIndex].data[index];
+        category = `trend-${label}`;
+      }
+
+      console.log('Chart clicked:', { chartType, label, value, category, datasetIndex, index });
+
+      // Set loading state
+      setIsLoadingDetails(true);
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch(`/api/sentiment-details?category=${category}&platform=${activeTab}&period=${activePeriod}`);
+      // const detailData = await response.json();
+      
+      try {
+        // Simulated API response
+        setTimeout(() => {
+          const mockDetailData = {
+            category: label,
+            value: value,
+            chartType: chartType,
+            detailedComments: [
+              { id: 1, text: `Detailed comment for ${label} - Sample 1`, author: 'User1', timestamp: new Date().toISOString() },
+              { id: 2, text: `Detailed comment for ${label} - Sample 2`, author: 'User2', timestamp: new Date().toISOString() },
+              { id: 3, text: `Detailed comment for ${label} - Sample 3`, author: 'User3', timestamp: new Date().toISOString() },
+            ],
+            metadata: {
+              totalCount: 156,
+              averageRating: 4.2,
+              topKeywords: ['quality', 'service', 'value']
+            }
+          };
+          
+          setClickedData(mockDetailData);
+          setIsLoadingDetails(false);
+          
+          // Scroll to the details section
+          document.getElementById('chart-details')?.scrollIntoView({ behavior: 'smooth' });
+        }, 800);
+
+      } catch (error) {
+        console.error('Error fetching detailed data:', error);
+        setIsLoadingDetails(false);
+      }
     }
   };
 
-  // Get current platform data based on active tab
-  const getCurrentSentiments = () => {
-    if (activeTab === 'consolidated') {
-      return data.sentiments;
-    }
-    return platformData[activeTab].sentiments;
-  };
+  // Get comments filtered by sentiment
+  const filteredComments = getFilteredComments();
+  const positiveComments = filteredComments.filter(c => c.sentiment === 'positive').slice(0, 4);
+  const negativeComments = filteredComments.filter(c => c.sentiment === 'negative').slice(0, 4);
+
+  // Use centralized data
+  const positiveAreas = MOCK_DATA.positiveAreas;
+  const improvementAreas = MOCK_DATA.improvementAreas;
+
+  // Chart data - uses filtering functions
   
   // Overall Sentiment Distribution (Pie Chart)
   const sentimentData = {
@@ -267,108 +427,121 @@ export default function Dashboard({ data }) {
           getCurrentSentiments().neutral,
         ],
         backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+        hoverBackgroundColor: ['#059669', '#dc2626', '#d97706'],
         borderWidth: 0,
+        hoverBorderWidth: 3,
+        hoverBorderColor: '#ffffff',
+        hoverOffset: 15,
       },
     ],
   };
 
   // Public Approval Rating (Doughnut Chart)
-  const getApprovalRate = () => {
-    if (activeTab === 'consolidated') return 68;
-    return platformData[activeTab].approval;
-  };
-
   const approvalData = {
     labels: ['Approved', 'Disapproved'],
     datasets: [
       {
         data: [getApprovalRate(), 100 - getApprovalRate()],
         backgroundColor: ['#3b82f6', '#94a3b8'],
+        hoverBackgroundColor: ['#2563eb', '#64748b'],
         borderWidth: 0,
+        hoverBorderWidth: 3,
+        hoverBorderColor: '#ffffff',
+        hoverOffset: 20,
       },
     ],
   };
 
   // Platform Comparison - Overall Sentiment (Bar Chart)
+  const platformComparison = getPlatformComparisonData();
   const platformComparisonData = {
-    labels: platforms,
+    labels: MOCK_DATA.platforms,
     datasets: [
       {
         label: 'Positive',
-        data: [65, 58, 72, 55, 48],
+        data: platformComparison.map(p => p.positive),
         backgroundColor: '#10b981',
+        hoverBackgroundColor: '#059669',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#047857',
       },
       {
         label: 'Neutral',
-        data: [20, 25, 18, 30, 32],
+        data: platformComparison.map(p => p.neutral),
         backgroundColor: '#f59e0b',
+        hoverBackgroundColor: '#d97706',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#b45309',
       },
       {
         label: 'Negative',
-        data: [15, 17, 10, 15, 20],
+        data: platformComparison.map(p => p.negative),
         backgroundColor: '#ef4444',
+        hoverBackgroundColor: '#dc2626',
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#b91c1c',
       },
     ],
   };
 
   // Positive Reviews by Platform (Bar Chart)
   const positiveByPlatformData = {
-    labels: platforms,
+    labels: MOCK_DATA.platforms,
     datasets: [
       {
         label: '% of Positive Reviews',
-        data: [65, 58, 72, 55, 48],
+        data: platformComparison.map(p => p.positive),
         backgroundColor: '#10b981',
+        hoverBackgroundColor: '#059669',
         borderRadius: 8,
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#047857',
       },
     ],
   };
 
   // Neutral Reviews by Platform (Bar Chart)
   const neutralByPlatformData = {
-    labels: platforms,
+    labels: MOCK_DATA.platforms,
     datasets: [
       {
         label: '% of Neutral Reviews',
-        data: [20, 25, 18, 30, 32],
+        data: platformComparison.map(p => p.neutral),
         backgroundColor: '#f59e0b',
+        hoverBackgroundColor: '#d97706',
         borderRadius: 8,
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#b45309',
       },
     ],
   };
 
   // Negative Reviews by Platform (Bar Chart)
   const negativeByPlatformData = {
-    labels: platforms,
+    labels: MOCK_DATA.platforms,
     datasets: [
       {
         label: '% of Negative Reviews',
-        data: [15, 17, 10, 15, 20],
+        data: platformComparison.map(p => p.negative),
         backgroundColor: '#ef4444',
+        hoverBackgroundColor: '#dc2626',
         borderRadius: 8,
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: '#b91c1c',
       },
     ],
   };
 
   // Sentiment Trend Over Time (Line Chart)
-  const getTrendData = () => {
-    if (activeTab === 'consolidated') {
-      return {
-        positive: [55, 58, 62, 60, 65, 68, 70],
-        neutral: [30, 28, 25, 27, 23, 20, 18],
-        negative: [15, 14, 13, 13, 12, 12, 12]
-      };
-    }
-    const trend = platformData[activeTab].trend;
-    const positive = trend;
-    const neutral = trend.map(v => 100 - v - 15);
-    const negative = new Array(7).fill(15);
-    return { positive, neutral, negative };
-  };
-
   const trends = getTrendData();
   const trendData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    labels: getTrendLabels(),
     datasets: [
       {
         label: 'Positive',
@@ -377,6 +550,15 @@ export default function Dashboard({ data }) {
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         tension: 0.4,
         fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#10b981',
+        pointHoverBackgroundColor: '#059669',
+        pointBorderColor: '#ffffff',
+        pointHoverBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        hoverBorderWidth: 3,
       },
       {
         label: 'Neutral',
@@ -385,6 +567,15 @@ export default function Dashboard({ data }) {
         backgroundColor: 'rgba(245, 158, 11, 0.1)',
         tension: 0.4,
         fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#f59e0b',
+        pointHoverBackgroundColor: '#d97706',
+        pointBorderColor: '#ffffff',
+        pointHoverBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        hoverBorderWidth: 3,
       },
       {
         label: 'Negative',
@@ -393,6 +584,15 @@ export default function Dashboard({ data }) {
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         tension: 0.4,
         fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#ef4444',
+        pointHoverBackgroundColor: '#dc2626',
+        pointBorderColor: '#ffffff',
+        pointHoverBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        hoverBorderWidth: 3,
       },
     ],
   };
@@ -400,6 +600,12 @@ export default function Dashboard({ data }) {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 500,
+      easing: 'easeOutQuart',
+    },
     plugins: {
       legend: {
         position: 'bottom',
@@ -411,12 +617,83 @@ export default function Dashboard({ data }) {
           color: '#64748b',
         },
       },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 8,
+        callbacks: {
+          afterLabel: function() {
+            return '(Click for details)';
+          }
+        }
+      }
+    },
+    onClick: (event, elements) => handleChartClick(event, elements, 'pie'),
+    onHover: (event, activeElements) => {
+      event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+    },
+  };
+
+  const doughnutChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 500,
+      easing: 'easeOutQuart',
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 15,
+          font: {
+            size: 11,
+          },
+          color: '#64748b',
+        },
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 8,
+        callbacks: {
+          afterLabel: function() {
+            return '(Click for details)';
+          }
+        }
+      }
+    },
+    onClick: (event, elements) => handleChartClick(event, elements, 'doughnut'),
+    onHover: (event, activeElements) => {
+      event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
     },
   };
 
   const barChartOptions = {
     responsive: true,
     maintainAspectRatio: true,
+    animation: {
+      duration: 600,
+      easing: 'easeOutQuart',
+    },
     plugins: {
       legend: {
         position: 'bottom',
@@ -428,6 +705,24 @@ export default function Dashboard({ data }) {
           color: '#64748b',
         },
       },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 8,
+        callbacks: {
+          afterLabel: function() {
+            return '(Click for details)';
+          }
+        }
+      }
     },
     scales: {
       y: {
@@ -452,10 +747,18 @@ export default function Dashboard({ data }) {
         },
       },
     },
+    onClick: (event, elements) => handleChartClick(event, elements, 'bar'),
+    onHover: (event, activeElements) => {
+      event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+    },
   };
 
   const stackedBarOptions = {
     ...barChartOptions,
+    animation: {
+      duration: 600,
+      easing: 'easeOutQuart',
+    },
     scales: {
       ...barChartOptions.scales,
       x: {
@@ -467,11 +770,23 @@ export default function Dashboard({ data }) {
         stacked: true,
       },
     },
+    onClick: (event, elements) => handleChartClick(event, elements, 'bar'),
+    onHover: (event, activeElements) => {
+      event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+    },
   };
 
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: true,
+    animation: {
+      duration: 700,
+      easing: 'easeInOutQuart',
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'bottom',
@@ -483,6 +798,24 @@ export default function Dashboard({ data }) {
           color: '#64748b',
         },
       },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+        cornerRadius: 8,
+        callbacks: {
+          afterLabel: function() {
+            return '(Click for details)';
+          }
+        }
+      }
     },
     scales: {
       y: {
@@ -507,20 +840,11 @@ export default function Dashboard({ data }) {
         },
       },
     },
+    onClick: (event, elements) => handleChartClick(event, elements, 'line'),
+    onHover: (event, activeElements) => {
+      event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+    },
   };
-
-  // Get filtered comments based on active tab
-  const getFilteredComments = () => {
-    if (activeTab === 'consolidated') {
-      return comments;
-    }
-    const platformName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
-    return comments.filter(c => c.platform.toLowerCase() === activeTab.toLowerCase());
-  };
-
-  const filteredComments = getFilteredComments();
-  const filteredPositiveComments = filteredComments.filter(c => c.sentiment === 'positive').slice(0, 4);
-  const filteredNegativeComments = filteredComments.filter(c => c.sentiment === 'negative').slice(0, 4);
 
   return (
     <div className="space-y-8">
@@ -529,14 +853,23 @@ export default function Dashboard({ data }) {
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           Sentiment Analysis Dashboard
         </h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
           Comprehensive analysis of public sentiment across multiple platforms
         </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+          </svg>
+          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+            💡 Tip: Click on any chart element to view detailed analysis
+          </span>
+        </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-4">
-        <div className="flex flex-wrap justify-center gap-4">
+      {/* Tab Navigation & Period Filter */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
+        {/* Platform Tabs */}
+        <div className="flex flex-wrap justify-center gap-4 mb-6">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -550,6 +883,34 @@ export default function Dashboard({ data }) {
               {tab.name}
             </button>
           ))}
+        </div>
+
+        {/* Period Filter */}
+        <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Time Period:</span>
+            </div>
+            <div className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+              {periods.map((period) => (
+                <button
+                  key={period.id}
+                  onClick={() => setActivePeriod(period.id)}
+                  className={`px-4 py-2 rounded-md font-medium text-xs transition-all ${
+                    activePeriod === period.id
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                  title={period.name}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -571,7 +932,7 @@ export default function Dashboard({ data }) {
             Public Approval Rating
           </h3>
           <div className="max-w-xs mx-auto mb-4">
-            <Doughnut data={approvalData} options={chartOptions} />
+            <Doughnut data={approvalData} options={doughnutChartOptions} />
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{getApprovalRate()}%</div>
@@ -695,7 +1056,7 @@ export default function Dashboard({ data }) {
           </div>
           
           <div className="space-y-4">
-            {filteredPositiveComments.map((comment) => (
+            {positiveComments.map((comment) => (
               <div
                 key={comment.id}
                 className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-xl hover:shadow-md transition-shadow"
@@ -746,7 +1107,7 @@ export default function Dashboard({ data }) {
           </div>
           
           <div className="space-y-4">
-            {filteredNegativeComments.map((comment) => (
+            {negativeComments.map((comment) => (
               <div
                 key={comment.id}
                 className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-xl hover:shadow-md transition-shadow"
@@ -974,6 +1335,124 @@ export default function Dashboard({ data }) {
           </div>
         </div>
       </div>
+
+      {/* Interactive Chart Details Section */}
+      {(clickedData || isLoadingDetails) && (
+        <div id="chart-details" className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                Detailed Analysis
+                {clickedData && ` - ${clickedData.category}`}
+              </h3>
+            </div>
+            <button
+              onClick={() => setClickedData(null)}
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Close details"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {isLoadingDetails ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <p className="mt-4 text-slate-600 dark:text-slate-400">Loading detailed data...</p>
+            </div>
+          ) : clickedData && (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="text-sm text-blue-600 dark:text-blue-400 mb-1">Data Points</div>
+                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">
+                    {clickedData.metadata.totalCount}
+                  </div>
+                </div>
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                  <div className="text-sm text-green-600 dark:text-green-400 mb-1">Average Rating</div>
+                  <div className="text-2xl font-bold text-green-900 dark:text-green-300">
+                    {clickedData.metadata.averageRating} / 5
+                  </div>
+                </div>
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                  <div className="text-sm text-purple-600 dark:text-purple-400 mb-1">Percentage</div>
+                  <div className="text-2xl font-bold text-purple-900 dark:text-purple-300">
+                    {clickedData.value}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Top Keywords */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                  Top Keywords
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {clickedData.metadata.topKeywords.map((keyword, idx) => (
+                    <span
+                      key={idx}
+                      className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium border border-slate-200 dark:border-slate-700"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Detailed Comments */}
+              <div>
+                <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                  Sample Comments
+                </h4>
+                <div className="space-y-4">
+                  {clickedData.detailedComments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {comment.author}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {new Date(comment.timestamp).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300">{comment.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* API Information Banner */}
+              <div className="mt-8 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
+                      Demo Mode
+                    </p>
+                    <p className="text-xs text-indigo-800 dark:text-indigo-400">
+                      This is simulated data. In production, clicking on chart elements will trigger an API call to fetch real detailed data for the selected category.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
