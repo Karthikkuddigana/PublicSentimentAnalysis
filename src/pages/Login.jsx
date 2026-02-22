@@ -152,7 +152,7 @@ export default function Login() {
           )}
           
           {/* Google Login Button */}
-          <button
+          {/* <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
             className="w-full px-6 py-4 mb-6 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-750 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-3"
@@ -164,14 +164,14 @@ export default function Login() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             <span>Continue with Google</span>
-          </button>
+          </button> */}
 
           {/* Divider */}
-          <div className="flex items-center my-6">
+          {/* <div className="flex items-center my-6">
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
             <span className="px-4 text-sm text-slate-500 dark:text-slate-400">or</span>
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
-          </div>
+          </div> */}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             

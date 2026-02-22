@@ -79,7 +79,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/analyze" element={<AnalyzePage />} />
-              <Route path="/review" element={<ReviewFormPage />} />
+              {/* <Route path="/review" element={<ReviewFormPage />} /> */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Route>
 

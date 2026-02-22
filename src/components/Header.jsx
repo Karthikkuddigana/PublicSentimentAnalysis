@@ -49,7 +49,7 @@ export default function Header() {
             >
               Analyze Data
             </Link>
-            <Link
+            {/* <Link
               to="/review"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive('/review')
@@ -58,7 +58,7 @@ export default function Header() {
               }`}
             >
               Submit Review
-            </Link>
+            </Link> */}
           </nav>
         </div>
 
