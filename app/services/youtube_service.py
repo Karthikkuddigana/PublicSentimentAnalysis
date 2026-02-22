@@ -222,12 +222,12 @@ def run_ingestion(
     - Apply sentiment scoring
     - Persist data
     """
-
+    print(organization_id)
     all_comments: List[Dict] = []
     youtube_records: List[Dict] = []
 
     video_ids = search_videos(brand, title_keyword, max_results=max_videos)
-
+    print(video_ids)
     for video_id in video_ids:
 
         comments = fetch_comments(
@@ -263,19 +263,19 @@ def run_ingestion(
     # ✅ Insert into youtube_comments table
     save_youtube_comments(youtube_records)
 
-    # file_path = None
+    file_path = None
 
-    # if storage == "csv":
-    #     file_path = save_to_csv(all_comments, brand, title_keyword)
+    if storage == "csv":
+        file_path = save_to_csv(all_comments, brand, title_keyword)
 
-    # elif storage == "excel":
-    #     file_path = save_to_excel(all_comments, brand, title_keyword)
+    elif storage == "excel":
+        file_path = save_to_excel(all_comments, brand, title_keyword)
 
-    # elif storage == "supabase":
-    #     pass  # already inserted into youtube_comments
+    elif storage == "supabase":
+        pass  # already inserted into youtube_comments
 
-    # else:
-    #     raise ValueError("Invalid storage type. Use: csv | excel | supabase")
+    else:
+        raise ValueError("Invalid storage type. Use: csv | excel | supabase")
 
     return {
         "records": len(all_comments),

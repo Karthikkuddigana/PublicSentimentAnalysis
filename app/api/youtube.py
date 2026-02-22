@@ -12,6 +12,7 @@ router = APIRouter()
 # =========================================================
 
 class IngestRequest(BaseModel):
+    organization_id: str = Field(default="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
     brand: str = Field(..., min_length=1, max_length=100)
     title_keyword: str = Field(..., min_length=1, max_length=200)
 
@@ -64,7 +65,7 @@ def ingest(req: IngestRequest):
         result = run_ingestion(
             brand=req.brand,
             title_keyword=req.title_keyword,
-            organization_id="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            organization_id=req.organization_id,
             storage=req.storage,
             benchmark=req.benchmark,
             max_videos=req.max_videos,
