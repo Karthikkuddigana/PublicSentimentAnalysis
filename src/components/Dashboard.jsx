@@ -29,283 +29,6 @@ ChartJS.register(
   Filler
 );
 
-// ==================== MOCK DATA - REPLACE WITH API CALLS ====================
-const MOCK_DATA = {
-  platforms: ['Instagram', 'Twitter', 'Facebook', 'YouTube', 'Reddit'],
-  
-  // Consolidated sentiment data
-  consolidated: {
-    sentiments: { positive: 60, negative: 20, neutral: 20 },
-    approval: 68,
-  },
-  
-  // Platform-specific sentiment data
-  platformSentiments: {
-    instagram: { positive: 65, negative: 15, neutral: 20, approval: 72 },
-    twitter: { positive: 58, negative: 17, neutral: 25, approval: 65 },
-    youtube: { positive: 55, negative: 15, neutral: 30, approval: 68 },
-    facebook: { positive: 72, negative: 10, neutral: 18, approval: 75 },
-    reddit: { positive: 48, negative: 20, neutral: 32, approval: 60 },
-  },
-  
-  // Comments/Reviews data
-  comments: [
-    {
-      id: 1,
-      platform: 'Instagram',
-      sentiment: 'positive',
-      rating: 5,
-      text: 'Absolutely love this product! The quality exceeded my expectations and the customer service was outstanding. Highly recommend to everyone!',
-      author: '@sarah_johnson',
-      date: '2 days ago',
-      timestamp: '2024-02-19T10:30:00Z'
-    },
-    {
-      id: 2,
-      platform: 'Twitter',
-      sentiment: 'positive',
-      rating: 5,
-      text: 'Best purchase I\'ve made this year! The features are incredible and it works flawlessly. Worth every penny. 🌟',
-      author: '@tech_guru_mike',
-      date: '5 hours ago',
-      timestamp: '2024-02-21T05:00:00Z'
-    },
-    {
-      id: 3,
-      platform: 'Facebook',
-      sentiment: 'positive',
-      rating: 5,
-      text: 'I was skeptical at first, but this has completely changed my daily routine. Amazing value for money and exceptional quality!',
-      author: 'Emily Chen',
-      date: '1 day ago',
-      timestamp: '2024-02-20T14:00:00Z'
-    },
-    {
-      id: 4,
-      platform: 'YouTube',
-      sentiment: 'positive',
-      rating: 5,
-      text: 'After using this for 3 months, I can confidently say this is the best in its category. The attention to detail is remarkable!',
-      author: 'David Miller',
-      date: '3 days ago',
-      timestamp: '2024-02-18T09:00:00Z'
-    },
-    {
-      id: 5,
-      platform: 'Reddit',
-      sentiment: 'negative',
-      rating: 1,
-      text: 'Very disappointed with the quality. Not as advertised and customer support was unhelpful. Would not recommend.',
-      author: 'u/honest_reviewer',
-      date: '1 day ago',
-      timestamp: '2024-02-20T16:00:00Z'
-    },
-    {
-      id: 6,
-      platform: 'Instagram',
-      sentiment: 'negative',
-      rating: 2,
-      text: 'Expected much better for the price. The product feels cheap and broke after just a week of use. Really frustrating experience.',
-      author: '@critical_buyer',
-      date: '4 hours ago',
-      timestamp: '2024-02-21T06:00:00Z'
-    },
-    {
-      id: 7,
-      platform: 'Twitter',
-      sentiment: 'negative',
-      rating: 1,
-      text: 'Worst purchase ever. Nothing works as promised. Save your money and look elsewhere. Total waste!',
-      author: '@disappointed_user',
-      date: '6 hours ago',
-      timestamp: '2024-02-21T04:00:00Z'
-    },
-    {
-      id: 8,
-      platform: 'Facebook',
-      sentiment: 'negative',
-      rating: 2,
-      text: 'The shipping took forever and when it finally arrived, it was damaged. Customer service refused to help. Very poor experience.',
-      author: 'Robert Thompson',
-      date: '2 days ago',
-      timestamp: '2024-02-19T11:00:00Z'
-    }
-  ],
-  
-  // Positive areas summary
-  positiveAreas: [
-    {
-      department: 'Product Quality',
-      score: 92,
-      highlights: [
-        'Exceptional build quality and durability',
-        'Premium materials that exceed expectations',
-        'Attention to detail in design and finish'
-      ],
-      trend: 'up'
-    },
-    {
-      department: 'Customer Service',
-      score: 88,
-      highlights: [
-        'Responsive and helpful support team',
-        'Quick resolution of customer issues',
-        'Friendly and professional interactions'
-      ],
-      trend: 'up'
-    },
-    {
-      department: 'Value for Money',
-      score: 85,
-      highlights: [
-        'Competitive pricing for quality offered',
-        'Great features at reasonable cost',
-        'Worth the investment according to users'
-      ],
-      trend: 'stable'
-    },
-    {
-      department: 'User Experience',
-      score: 90,
-      highlights: [
-        'Intuitive and easy to use interface',
-        'Seamless integration with daily workflow',
-        'Positive impact on productivity'
-      ],
-      trend: 'up'
-    }
-  ],
-  
-  // Areas needing improvement
-  improvementAreas: [
-    {
-      department: 'Shipping & Delivery',
-      score: 45,
-      issues: [
-        'Delayed shipping times reported frequently',
-        'Packages arriving damaged or incomplete',
-        'Poor communication about delivery status'
-      ],
-      priority: 'high',
-      recommendations: [
-        'Partner with more reliable shipping carriers',
-        'Implement better packaging standards',
-        'Provide real-time tracking updates'
-      ]
-    },
-    {
-      department: 'Product Durability',
-      score: 52,
-      issues: [
-        'Some products failing within warranty period',
-        'Quality inconsistency across batches',
-        'Materials not meeting advertised standards'
-      ],
-      priority: 'high',
-      recommendations: [
-        'Strengthen quality control processes',
-        'Review and upgrade materials sourcing',
-        'Extend warranty coverage options'
-      ]
-    },
-    {
-      department: 'Customer Support Response',
-      score: 58,
-      issues: [
-        'Long wait times for support responses',
-        'Inconsistent quality of support provided',
-        'Difficulty reaching support during peak hours'
-      ],
-      priority: 'medium',
-      recommendations: [
-        'Increase support team capacity',
-        'Implement 24/7 chat support',
-        'Improve training for support staff'
-      ]
-    },
-    {
-      department: 'Documentation',
-      score: 61,
-      issues: [
-        'Instructions unclear or incomplete',
-        'Lack of troubleshooting guides',
-        'Documentation not updated regularly'
-      ],
-      priority: 'medium',
-      recommendations: [
-        'Create comprehensive user guides',
-        'Add video tutorials for common tasks',
-        'Maintain up-to-date FAQ section'
-      ]
-    }
-  ],
-  
-  // Emotion analysis data
-  emotions: {
-    consolidated: {
-      joy: 45,
-      love: 28,
-      surprise: 12,
-      trust: 35,
-      anger: 15,
-      sadness: 18,
-      fear: 8,
-      disgust: 10
-    },
-    instagram: {
-      joy: 52,
-      love: 35,
-      surprise: 15,
-      trust: 38,
-      anger: 10,
-      sadness: 12,
-      fear: 5,
-      disgust: 8
-    },
-    twitter: {
-      joy: 38,
-      love: 22,
-      surprise: 18,
-      trust: 28,
-      anger: 22,
-      sadness: 20,
-      fear: 12,
-      disgust: 15
-    },
-    youtube: {
-      joy: 42,
-      love: 25,
-      surprise: 20,
-      trust: 32,
-      anger: 12,
-      sadness: 15,
-      fear: 8,
-      disgust: 10
-    },
-    facebook: {
-      joy: 55,
-      love: 38,
-      surprise: 10,
-      trust: 42,
-      anger: 8,
-      sadness: 10,
-      fear: 5,
-      disgust: 6
-    },
-    reddit: {
-      joy: 32,
-      love: 18,
-      surprise: 15,
-      trust: 22,
-      anger: 25,
-      sadness: 28,
-      fear: 15,
-      disgust: 18
-    }
-  }
-};
-// ==================== END MOCK DATA ====================
-
 export default function Dashboard({ data }) {
   const [activeTab, setActiveTab] = useState('consolidated');
   const [clickedData, setClickedData] = useState(null);
@@ -313,100 +36,127 @@ export default function Dashboard({ data }) {
   const [activePeriod, setActivePeriod] = useState('7d');
   const [apiData, setApiData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [commentsData, setCommentsData] = useState(null);
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
 
   // Fetch dashboard data from API
-  // API Endpoint: https://obscure-engine-4j76qgxvwv5p2j6qp-8000.app.github.dev/dashboard/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+  // API Endpoint: {VITE_API_BASE_URL}/dashboard/{organization_id}
+  // Query Parameters: platform={activeTab}, period={activePeriod}
   // 
   // ===== CURRENT API RESPONSE =====
   // {
   //   positiveCount: number,
   //   negativeCount: number,
-  //   neurtralCount: number,  // Note: typo in API response (neutral spelled as neurtral)
+  //   neurtralCount: number,
   //   emotions: {
   //     Anger: number,
   //     Neutral: number,
   //     Joy: number,
-  //     Love: number,
   //     Surprise: number,
-  //     Trust: number,
-  //     Sadness: number,
-  //     Fear: number,
-  //     Disgust: number
+  //     Sadness: number
+  //   },
+  //   approval: number (percentage),
+  //   platformSentiments: {
+  //     youtube: { positive, negative, neutral, approval, counts: { positive, negative, neutral, total } },
+  //     manual: { positive, negative, neutral, approval, counts: { positive, negative, neutral, total } }
   //   }
   // }
   //
   // ===== ADDITIONAL FIELDS NEEDED (TODO: Add to API) =====
-  // - platformSentiments: object with sentiment breakdown by platform (instagram, twitter, youtube, facebook, reddit)
   // - comments: array of comment objects with { id, text, sentiment, platform, timestamp, user }
   // - trends: time-based trend data for line charts
   // - positiveAreas: array of positive feedback areas
   // - improvementAreas: array of areas needing improvement
-  // - approval: calculated approval rating percentage
   //
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        console.log('Fetching dashboard data from API...');
-        const response = await fetch('https://obscure-engine-4j76qgxvwv5p2j6qp-8000.app.github.dev/dashboard/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+        // Get organization_id from localStorage
+        const organizationId = localStorage.getItem('organization_id');
+        if (!organizationId) {
+          throw new Error('Organization ID not found. Please log in again.');
+        }
+        
+        const platformName = activeTab === 'consolidated' ? 'All Platforms' : activeTab === 'youtube' ? 'YouTube' : 'Manual Reviews';
+        console.log(`\n=== Fetching ${platformName} Data ===`);
+        console.log('Platform:', activeTab);
+        console.log('Period:', activePeriod);
+        console.log('Organization ID:', organizationId);
+        
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+        const apiUrl = `${apiBaseUrl}/dashboard/${organizationId}?platform=${activeTab}&period=${activePeriod}`;
+        console.log('API URL:', apiUrl);
+        
+        const response = await fetch(apiUrl);
         
         if (!response.ok) {
           throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
         
         const apiResponse = await response.json();
-        console.log('API Response:', apiResponse);
+        console.log(`${platformName} API Response:`, apiResponse);
+        console.log('=== Data Loaded Successfully ===\n');
         
-        // Extend API data with fields not yet provided by backend
-        const enrichedData = {
-          ...apiResponse,
-          // Add missing fields that dashboard needs (will be removed when API provides them)
-          platformSentiments: apiResponse.platformSentiments || MOCK_DATA.platformSentiments,
-          comments: apiResponse.comments || MOCK_DATA.comments,
-          trends: apiResponse.trends || null, // Will be computed from mock if not available
-          positiveAreas: apiResponse.positiveAreas || MOCK_DATA.positiveAreas,
-          improvementAreas: apiResponse.improvementAreas || MOCK_DATA.improvementAreas,
-          approval: apiResponse.approval || Math.round((apiResponse.positiveCount / (apiResponse.positiveCount + apiResponse.negativeCount + apiResponse.neurtralCount)) * 100)
-        };
-        
-        setApiData(enrichedData);
-        console.log('Dashboard data loaded successfully');
+        // Use API data directly without mock enrichment
+        setApiData(apiResponse);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        console.log('Falling back to mock data');
-        
-        // Fallback to mock data on error
-        const fallbackData = {
-          positiveCount: 150,
-          negativeCount: 45,
-          neurtralCount: 80,
-          emotions: {
-            Anger: 12,
-            Neutral: 25,
-            Joy: 35,
-            Love: 20,
-            Surprise: 15,
-            Trust: 28,
-            Sadness: 18,
-            Fear: 8,
-            Disgust: 10
-          },
-          platformSentiments: MOCK_DATA.platformSentiments,
-          comments: MOCK_DATA.comments,
-          trends: null,
-          positiveAreas: MOCK_DATA.positiveAreas,
-          improvementAreas: MOCK_DATA.improvementAreas,
-          approval: 77
-        };
-        
-        setApiData(fallbackData);
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+        alert(`Failed to load ${activeTab === 'consolidated' ? 'consolidated' : activeTab.toUpperCase()} dashboard data. Please check if the API server is running at ${apiBaseUrl}`);
+        setApiData(null);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [activePeriod]);
+  }, [activePeriod, activeTab]);
+
+  // Fetch top comments from insights API
+  useEffect(() => {
+    const fetchTopComments = async () => {
+      setIsLoadingComments(true);
+      try {
+        // Get organization_id from localStorage
+        const organizationId = localStorage.getItem('organization_id');
+        if (!organizationId) {
+          throw new Error('Organization ID not found. Please log in again.');
+        }
+        
+        // Map platform: consolidated -> all, youtube -> youtube, manual -> manual
+        const platformParam = activeTab === 'consolidated' ? 'all' : activeTab;
+        const platformName = activeTab === 'consolidated' ? 'All Platforms' : activeTab === 'youtube' ? 'YouTube' : 'Manual Reviews';
+        
+        console.log(`\n=== Fetching Top Comments for ${platformName} ===`);
+        console.log('Platform:', platformParam);
+        console.log('Organization ID:', organizationId);
+        
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+        const apiUrl = `${apiBaseUrl}/insights/top-comments?organization_id=${organizationId}&platform=${platformParam}`;
+        console.log('Comments API URL:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const apiResponse = await response.json();
+        console.log(`${platformName} Comments Response:`, apiResponse);
+        console.log('=== Comments Loaded Successfully ===\n');
+        
+        setCommentsData(apiResponse);
+      } catch (error) {
+        console.error('Error fetching top comments:', error);
+        setCommentsData(null);
+      } finally {
+        setIsLoadingComments(false);
+      }
+    };
+
+    fetchTopComments();
+  }, [activeTab]);
 
   // Transform API data to percentages
   const getTransformedSentiments = () => {
@@ -433,28 +183,55 @@ export default function Dashboard({ data }) {
         anger: 0,
         sadness: 0,
         fear: 0,
-        disgust: 0
+        disgust: 0,
+        neutral: 0
+      };
+    }
+
+    // Convert emotion counts to percentages
+    const emotions = apiData.emotions;
+    const total = (emotions.Joy || 0) + 
+                 (emotions.Love || 0) + 
+                 (emotions.Surprise || 0) + 
+                 (emotions.Trust || 0) + 
+                 (emotions.Anger || 0) + 
+                 (emotions.Sadness || 0) + 
+                 (emotions.Fear || 0) + 
+                 (emotions.Disgust || 0) + 
+                 (emotions.Neutral || 0);
+
+    if (total === 0) {
+      return {
+        joy: 0,
+        love: 0,
+        surprise: 0,
+        trust: 0,
+        anger: 0,
+        sadness: 0,
+        fear: 0,
+        disgust: 0,
+        neutral: 0
       };
     }
 
     return {
-      joy: apiData.emotions.Joy || 0,
-      love: apiData.emotions.Love || 0,
-      surprise: apiData.emotions.Surprise || 0,
-      trust: apiData.emotions.Trust || 0,
-      anger: apiData.emotions.Anger || 0,
-      sadness: apiData.emotions.Sadness || 0,
-      fear: apiData.emotions.Fear || 0,
-      disgust: apiData.emotions.Disgust || 0
+      joy: Math.round(((emotions.Joy || 0) / total) * 100),
+      love: Math.round(((emotions.Love || 0) / total) * 100),
+      surprise: Math.round(((emotions.Surprise || 0) / total) * 100),
+      trust: Math.round(((emotions.Trust || 0) / total) * 100),
+      anger: Math.round(((emotions.Anger || 0) / total) * 100),
+      sadness: Math.round(((emotions.Sadness || 0) / total) * 100),
+      fear: Math.round(((emotions.Fear || 0) / total) * 100),
+      disgust: Math.round(((emotions.Disgust || 0) / total) * 100),
+      neutral: Math.round(((emotions.Neutral || 0) / total) * 100)
     };
   };
   
   // Tab configuration
   const tabs = [
-    { id: 'consolidated', name: 'Consolidated Overview' },
-    { id: 'instagram', name: 'Instagram' },
-    { id: 'twitter', name: 'Twitter' },
-    { id: 'youtube', name: 'YouTube' }
+    { id: 'consolidated', name: 'All Platforms' },
+    { id: 'youtube', name: 'YouTube' },
+    { id: 'manual', name: 'Manual Reviews' }
   ];
 
   // Period filter configuration
@@ -472,58 +249,51 @@ export default function Dashboard({ data }) {
   
   // Get sentiment data based on active tab
   const getCurrentSentiments = () => {
-    // Use API data when available for consolidated view
-    if (apiData && activeTab === 'consolidated') {
-      return getTransformedSentiments();
-    }
+    if (!apiData) return { positive: 0, negative: 0, neutral: 0 };
     
-    // Fallback logic
-    if (activeTab === 'consolidated') {
-      return data?.sentiments || MOCK_DATA.consolidated.sentiments;
-    }
-    return MOCK_DATA.platformSentiments[activeTab] || { positive: 0, negative: 0, neutral: 0 };
+    // For all tabs (consolidated, youtube, manual), API returns data at root level
+    // The platform parameter in the URL determines what data is returned
+    return getTransformedSentiments();
   };
   
   // Get approval rating based on active tab
   const getApprovalRate = () => {
-    if (activeTab === 'consolidated' && apiData && apiData.approval) {
-      return apiData.approval;
-    }
-    if (activeTab === 'consolidated') {
-      return MOCK_DATA.consolidated.approval;
-    }
-    return MOCK_DATA.platformSentiments[activeTab]?.approval || 0;
+    if (!apiData) return 0;
+    
+    // Approval is always at root level regardless of platform
+    return apiData.approval !== undefined ? apiData.approval : 0;
   };
   
   // Get filtered comments based on active tab
   const getFilteredComments = () => {
-    if (activeTab === 'consolidated' && apiData && apiData.comments) {
-      return apiData.comments;
-    }
-    if (activeTab === 'consolidated') {
-      return MOCK_DATA.comments;
-    }
-    const platformName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
-    return MOCK_DATA.comments.filter(c => c.platform.toLowerCase() === activeTab.toLowerCase());
+    if (!apiData || !apiData.comments) return [];
+    
+    // API returns filtered comments based on platform parameter
+    // No need to filter here - API already did it
+    return apiData.comments;
   };
   
   // Get platform comparison data
   const getPlatformComparisonData = () => {
-    return MOCK_DATA.platforms.map(platform => {
-      const key = platform.toLowerCase();
-      return MOCK_DATA.platformSentiments[key] || { positive: 0, negative: 0, neutral: 0 };
+    if (!apiData || !apiData.platformSentiments) return [];
+    
+    const platforms = ['youtube', 'manual'];
+    return platforms.map(platform => {
+      const data = apiData.platformSentiments[platform];
+      return data ? {
+        positive: data.positive,
+        negative: data.negative,
+        neutral: data.neutral
+      } : { positive: 0, negative: 0, neutral: 0 };
     });
   };
   
   // Get emotion data based on active tab
   const getCurrentEmotions = () => {
-    // Use API data when available
-    if (apiData && activeTab === 'consolidated') {
-      return getTransformedEmotions();
-    }
+    if (!apiData) return { joy: 0, love: 0, surprise: 0, trust: 0, anger: 0, sadness: 0, fear: 0, disgust: 0, neutral: 0 };
     
-    // Fallback to mock data for individual platforms
-    return MOCK_DATA.emotions[activeTab] || MOCK_DATA.emotions.consolidated;
+    // API returns emotions at root level based on platform parameter
+    return getTransformedEmotions();
   };
 
   // Get trend labels based on selected period
@@ -633,14 +403,32 @@ export default function Dashboard({ data }) {
     }
   };
 
-  // Get comments filtered by sentiment
-  const filteredComments = getFilteredComments();
-  const positiveComments = filteredComments.filter(c => c.sentiment === 'positive').slice(0, 4);
-  const negativeComments = filteredComments.filter(c => c.sentiment === 'negative').slice(0, 4);
+  // Transform API comments data to UI format
+  const transformComment = (comment, index, sentiment) => {
+    const text = comment.text || comment.review_text || '';
+    const date = new Date(comment.created_at).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+    
+    return {
+      id: index,
+      platform: activeTab === 'consolidated' ? 'All' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1),
+      rating: comment.scaled_score || 0,
+      date: date,
+      text: text,
+      author: 'Anonymous',
+      sentiment: sentiment
+    };
+  };
 
-  // Use centralized data
-  const positiveAreas = MOCK_DATA.positiveAreas;
-  const improvementAreas = MOCK_DATA.improvementAreas;
+  const positiveComments = commentsData?.positiveComments?.map((c, i) => transformComment(c, i, 'positive')).slice(0, 4) || [];
+  const negativeComments = commentsData?.negativeComments?.map((c, i) => transformComment(c, i, 'negative')).slice(0, 4) || [];
+
+  // Use API data for insights
+  const positiveAreas = apiData?.positiveAreas || [];
+  const improvementAreas = apiData?.improvementAreas || [];
 
   // Chart data - uses filtering functions
   
@@ -682,8 +470,9 @@ export default function Dashboard({ data }) {
 
   // Platform Comparison - Overall Sentiment (Bar Chart)
   const platformComparison = getPlatformComparisonData();
+  const platformLabels = ['YouTube', 'Manual'];
   const platformComparisonData = {
-    labels: MOCK_DATA.platforms,
+    labels: platformLabels,
     datasets: [
       {
         label: 'Positive',
@@ -717,7 +506,7 @@ export default function Dashboard({ data }) {
 
   // Positive Reviews by Platform (Bar Chart)
   const positiveByPlatformData = {
-    labels: MOCK_DATA.platforms,
+    labels: platformLabels,
     datasets: [
       {
         label: '% of Positive Reviews',
@@ -734,7 +523,7 @@ export default function Dashboard({ data }) {
 
   // Neutral Reviews by Platform (Bar Chart)
   const neutralByPlatformData = {
-    labels: MOCK_DATA.platforms,
+    labels: platformLabels,
     datasets: [
       {
         label: '% of Neutral Reviews',
@@ -751,7 +540,7 @@ export default function Dashboard({ data }) {
 
   // Negative Reviews by Platform (Bar Chart)
   const negativeByPlatformData = {
-    labels: MOCK_DATA.platforms,
+    labels: platformLabels,
     datasets: [
       {
         label: '% of Negative Reviews',
@@ -1340,15 +1129,50 @@ export default function Dashboard({ data }) {
 
   // Show loading state
   if (isLoading) {
+    const platformName = activeTab === 'consolidated' ? 'All Platforms' : activeTab === 'youtube' ? 'YouTube' : 'Manual Reviews';
     return (
       <div className="space-y-8">
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-blue-600"></div>
             <div className="text-center">
-              <div className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Loading Dashboard Data</div>
+              <div className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Loading {platformName} Data</div>
               <div className="text-sm text-slate-600 dark:text-slate-400">Fetching sentiment analysis from API...</div>
-              <div className="text-xs text-slate-500 dark:text-slate-500 mt-2">Period: {periods.find(p => p.id === activePeriod)?.name}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-500 mt-2">
+                Platform: <span className="font-semibold">{platformName}</span> • Period: <span className="font-semibold">{periods.find(p => p.id === activePeriod)?.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if no data
+  if (!apiData) {
+    const platformName = activeTab === 'consolidated' ? 'All Platforms' : activeTab === 'youtube' ? 'YouTube' : 'Manual Reviews';
+    return (
+      <div className="space-y-8">
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-lg border border-red-200 dark:border-red-800 p-8">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-red-100 dark:bg-red-900/40 rounded-full">
+              <svg className="w-12 h-12 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-red-900 dark:text-red-300 mb-2">Unable to Load {platformName} Dashboard</div>
+              <div className="text-sm text-red-700 dark:text-red-400 mb-4">Failed to fetch data from the API server</div>
+              <div className="text-xs text-red-600 dark:text-red-500 bg-red-100 dark:bg-red-900/40 rounded-lg p-3 mb-4 font-mono">
+                Platform: {activeTab} • Period: {activePeriod}<br/>
+                {import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'}/dashboard/...?platform={activeTab}&period={activePeriod}
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Retry
+              </button>
             </div>
           </div>
         </div>
@@ -1360,12 +1184,29 @@ export default function Dashboard({ data }) {
     <div className="space-y-8">
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-          Sentiment Analysis Dashboard
-        </h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-          Comprehensive analysis of public sentiment across multiple platforms
-        </p>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              Sentiment Analysis Dashboard
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {activeTab === 'consolidated' 
+                ? 'Analysis across YouTube and Manual review platforms' 
+                : activeTab === 'youtube' 
+                ? 'YouTube Platform Analytics' 
+                : 'Manual Reviews Analytics'
+              } • Period: {periods.find(p => p.id === activePeriod)?.name}
+            </p>
+          </div>
+          {apiData && (
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg px-4 py-2 border border-slate-200 dark:border-slate-700">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Total Reviews</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {apiData.positiveCount + apiData.negativeCount + apiData.neurtralCount}
+              </div>
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1375,22 +1216,10 @@ export default function Dashboard({ data }) {
               💡 Tip: Click on any chart element to view detailed analysis
             </span>
           </div>
-          <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${
-            apiData && apiData.positiveCount !== undefined 
-              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-          }`}>
-            <div className={`w-2 h-2 rounded-full animate-pulse ${
-              apiData && apiData.positiveCount !== undefined 
-                ? 'bg-green-500' 
-                : 'bg-amber-500'
-            }`}></div>
-            <span className={`text-xs font-medium ${
-              apiData && apiData.positiveCount !== undefined 
-                ? 'text-green-700 dark:text-green-300' 
-                : 'text-amber-700 dark:text-amber-300'
-            }`}>
-              {apiData && apiData.positiveCount !== undefined ? '🌐 Live API Data' : '📦 Mock Data Fallback'}
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+            <div className="w-2 h-2 rounded-full animate-pulse bg-green-500"></div>
+            <span className="text-xs font-medium text-green-700 dark:text-green-300">
+              🌐 {activeTab === 'consolidated' ? 'All Platforms' : activeTab === 'youtube' ? 'YouTube' : 'Manual'} Data
             </span>
           </div>
         </div>
@@ -1738,42 +1567,57 @@ export default function Dashboard({ data }) {
             </h3>
           </div>
           
-          <div className="space-y-4">
-            {positiveComments.map((comment) => (
-              <div
-                key={comment.id}
-                className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-xl hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-md">
-                      {comment.platform}
-                    </span>
-                    <div className="flex gap-0.5">
-                      {[...Array(comment.rating)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className="w-4 h-4 text-yellow-400 fill-yellow-400"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      ))}
+          {isLoadingComments ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+            </div>
+          ) : positiveComments.length === 0 ? (
+            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p className="text-sm">No positive comments available</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {positiveComments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-xl hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-md">
+                        {comment.platform}
+                      </span>
+                      {comment.rating > 0 && (
+                        <div className="flex gap-0.5">
+                          {[...Array(comment.rating)].map((_, i) => (
+                            <svg
+                              key={i}
+                              className="w-4 h-4 text-yellow-400 fill-yellow-400"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {comment.date}
+                    </span>
                   </div>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {comment.date}
-                  </span>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-relaxed">
+                    "{comment.text}"
+                  </p>
+                  <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    — {comment.author}
+                  </div>
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-relaxed">
-                  "{comment.text}"
-                </p>
-                <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                  — {comment.author}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Most Negative Comments */}
@@ -1789,48 +1633,64 @@ export default function Dashboard({ data }) {
             </h3>
           </div>
           
-          <div className="space-y-4">
-            {negativeComments.map((comment) => (
-              <div
-                key={comment.id}
-                className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-xl hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-md">
-                      {comment.platform}
-                    </span>
-                    <div className="flex gap-0.5">
-                      {[...Array(comment.rating)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className="w-4 h-4 text-yellow-400 fill-yellow-400"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      ))}
+          {isLoadingComments ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600"></div>
+            </div>
+          ) : negativeComments.length === 0 ? (
+            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p className="text-sm">No negative comments available</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {negativeComments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-xl hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-md">
+                        {comment.platform}
+                      </span>
+                      {comment.rating > 0 && (
+                        <div className="flex gap-0.5">
+                          {[...Array(comment.rating)].map((_, i) => (
+                            <svg
+                              key={i}
+                              className="w-4 h-4 text-yellow-400 fill-yellow-400"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {comment.date}
+                    </span>
                   </div>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {comment.date}
-                  </span>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-relaxed">
+                    "{comment.text}"
+                  </p>
+                  <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    — {comment.author}
+                  </div>
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-relaxed">
-                  "{comment.text}"
-                </p>
-                <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                  — {comment.author}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Performance Summary Sections */}
+      {/* Temporarily commented out - Areas of Excellence and Areas for Improvement
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Positive Areas - What's Working Well */}
+        {/* Positive Areas - What's Working Well *\/}
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30">
@@ -1915,7 +1775,7 @@ export default function Dashboard({ data }) {
           </div>
         </div>
 
-        {/* Areas Needing Improvement */}
+        {/* Areas Needing Improvement *\/}
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30">
@@ -2018,6 +1878,7 @@ export default function Dashboard({ data }) {
           </div>
         </div>
       </div>
+      */}
 
       {/* Interactive Chart Details Section */}
       {(clickedData || isLoadingDetails) && (

@@ -43,7 +43,7 @@ export default function Signup() {
       return;
     }
 
-    const { success, error: authError, needsEmailConfirmation } = await signup(
+    const { success, error: authError } = await signup(
       formData.email,
       formData.password,
       { 
@@ -53,12 +53,9 @@ export default function Signup() {
     );
 
     if (success) {
-      if (needsEmailConfirmation) {
-        setSuccessMessage('Account created! Please check your email to confirm your account.');
-        setIsLoading(false);
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      setIsLoading(false);
+      alert('Account created successfully! Please sign in with your credentials.');
+      navigate('/login', { replace: true });
     } else {
       setError(authError || 'Failed to create account. Please try again.');
       setIsLoading(false);

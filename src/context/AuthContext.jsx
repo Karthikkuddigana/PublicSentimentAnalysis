@@ -22,6 +22,24 @@ export function AuthProvider({ children }) {
         console.log('🔄 Checking existing session...');
         const { data: { session } } = await supabase.auth.getSession();
         console.log('📦 Session:', session);
+        
+        // If session exists, fetch and store organization_id if not in localStorage
+        if (session?.user && !localStorage.getItem('organization_id')) {
+          console.log('📦 Fetching organization_id for existing session...');
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('organization_id')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (userError) {
+            console.error('⚠️ Error fetching organization_id:', userError);
+          } else if (userData?.organization_id) {
+            console.log('✅ Organization ID fetched:', userData.organization_id);
+            localStorage.setItem('organization_id', userData.organization_id);
+          }
+        }
+        
         setUser(session?.user ?? null);
       } catch (error) {
         console.error('❌ Error checking auth session:', error);
@@ -78,6 +96,24 @@ export function AuthProvider({ children }) {
       }
       
       console.log('✅ Login successful!', data.user.email);
+      
+      // Fetch organization_id from users table
+      console.log('📦 Fetching organization_id...');
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (userError) {
+        console.error('⚠️ Error fetching organization_id:', userError);
+      } else if (userData?.organization_id) {
+        console.log('✅ Organization ID fetched:', userData.organization_id);
+        localStorage.setItem('organization_id', userData.organization_id);
+      } else {
+        console.warn('⚠️ No organization_id found for user');
+      }
+      
       setUser(data.user);
       return { success: true, error: null };
     } catch (error) {
@@ -89,50 +125,46 @@ export function AuthProvider({ children }) {
 
   const signup = async (email, password, metadata = {}) => {
     try {
-      console.log('📝 Attempting Supabase signup...');
+      console.log('📝 Attempting signup...');
       console.log('📍 Email:', email);
       console.log('📋 Metadata:', metadata);
-      console.log('🔍 Supabase object exists:', !!supabase);
-      console.log('🔍 Supabase.auth exists:', !!supabase?.auth);
-      console.log('🌐 ENV URL:', import.meta.env.VITE_SUPABASE_URL);
-      console.log('🔑 ENV KEY exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
       
-      if (!supabase || !supabase.auth) {
-        throw new Error('Supabase client is not properly initialized. Did you restart the dev server?');
-      }
-
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        throw new Error('Environment variables not loaded. Please restart dev server with: npm run dev');
-      }
-
-      console.log('🚀 Making API call to Supabase signup...');
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata, // Includes organizationName and username
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+      const signupUrl = `${apiBaseUrl}/auth/signup`;
+      
+      console.log('🚀 Making API call to signup endpoint:', signupUrl);
+      
+      const requestBody = {
+        organization_name: metadata.organizationName || '',
+        username: metadata.username || '',
+        email: email,
+        password: password
+      };
+      
+      console.log('📤 Request body:', { ...requestBody, password: '***' });
+      
+      const response = await fetch(signupUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify(requestBody),
       });
 
-      console.log('📡 Signup API Response - data:', data);
-      console.log('📡 Signup API Response - error:', error);
+      const data = await response.json();
+      console.log('📡 Signup API Response:', data);
 
-      if (error) {
-        console.error('❌ Signup error:', error.message);
-        throw error;
+      if (!response.ok) {
+        const errorMessage = data.detail || data.message || 'Signup failed';
+        console.error('❌ Signup error:', errorMessage);
+        throw new Error(errorMessage);
       }
 
-      if (!data.user) {
-        throw new Error('Signup succeeded but no user data returned');
-      }
+      console.log('✅ Signup successful!', email);
 
-      console.log('✅ Signup successful!', data.user.email);
-      console.log('📦 User metadata stored:', data.user.user_metadata);
-      console.log('🔐 Session exists:', !!data.session);
-      console.log('📧 Email confirmation needed:', !data.session);
-
-      setUser(data.user);
-      return { success: true, error: null, needsEmailConfirmation: !data.session };
+      // Don't set user or fetch organization_id during signup
+      // User will login after signup to get organization_id
+      return { success: true, error: null, needsEmailConfirmation: false };
     } catch (error) {
       console.error('❌ Signup failed:', error);
       console.error('❌ Error details:', JSON.stringify(error, null, 2));
@@ -162,6 +194,11 @@ export function AuthProvider({ children }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Clear organization_id from localStorage
+      localStorage.removeItem('organization_id');
+      console.log('🗑️ Organization ID cleared from localStorage');
+      
       setUser(null);
       return { success: true, error: null };
     } catch (error) {
